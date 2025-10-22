@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">StatusWindow</string>
+
+    <string name="title_card_events">카드 내역</string>
+    <string name="total_amount_default">총액: 0</string>
+    <string name="total_amount_fmt">총액: %,d</string>
+    <string name="notify_on">알림접근 ON</string>
+    <string name="notify_off">알림접근 OFF</string>
+    <string name="action_open_settings">권한설정</string>
+    <string name="action_add">추가</string>
+    <string name="title_paste_sms">SMS 붙여넣기</string>
+    <string name="action_import">가져오기</string>
+    <string name="hint_paste_sms">여러 줄의 결제 알림/SMS를 붙여넣으세요</string>
+    <string name="msg_no_parsable">가져올 항목이 없습니다</string>
+    <string name="msg_imported_n">%1$d건을 가져왔습니다</string>
+    <string name="empty_list">표시할 카드 내역이 없습니다</string>
+</resources>
+

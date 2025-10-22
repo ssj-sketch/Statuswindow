@@ -1,8 +1,4 @@
-plugins {
-    id("com.android.library")
-    kotlin("android")
-    kotlin("kapt")
-}
+plugins { id("com.android.library"); kotlin("android"); kotlin("kapt") }
 
 android {
     namespace = "com.ssj.statuswindow.data"
@@ -10,36 +6,24 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+        release { isMinifyEnabled = false }
         debug { isMinifyEnabled = false }
     }
 
     buildFeatures { buildConfig = true }
 
-    // ✅ Java 17
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    // ✅ Kotlin 17
     kotlinOptions { jvmTarget = "17" }
 }
-
-kotlin {
-    // ✅ Kotlin JDK Toolchain 17
-    jvmToolchain(17)
-}
+kotlin { jvmToolchain(17) }
 
 dependencies {
     implementation(project(":core-common"))
@@ -48,7 +32,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     kapt(libs.androidx.room.compiler)
@@ -56,7 +39,6 @@ dependencies {
     implementation(libs.timber)
 }
 
-// (선택) KAPT 자바 옵션도 17로
 kapt {
     javacOptions {
         option("-source", "17")

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.StatusWindow" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- 필요 시 커스텀 항목 추가 -->
+        <!-- <item name="android:statusBarColor">?attr/colorPrimary</item> -->
+    </style>
+</resources>

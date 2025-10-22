@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp">
+
+    <EditText
+        android:id="@+id/etPaste"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:gravity="top|start"
+        android:hint="@string/hint_paste_sms"
+        android:inputType="textMultiLine"
+        android:overScrollMode="ifContentScrolls"/>
+</FrameLayout>

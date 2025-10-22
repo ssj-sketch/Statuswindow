@@ -17,6 +17,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+        dataBinding = false          // 데이터바인딩 비활성
+        buildConfig = true           // BuildConfig 생성
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -31,30 +37,33 @@ android {
         }
     }
 
-    buildFeatures { viewBinding = true }
-
-    // ✅ Java 컴파일러도 17로 통일
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    // ✅ Kotlin JVM 타깃 17
-    kotlinOptions { jvmTarget = "17" }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
-// ✅ Kotlin JDK 툴체인 17 (권장)
 kotlin {
     jvmToolchain(17)
 }
 
 dependencies {
+    // 모듈
     implementation(project(":data"))
     implementation(project(":core-parsing"))
     implementation(project(":core-ml"))
     implementation(project(":core-common"))
 
+    // 버전 카탈로그 사용 (중복 피하기)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.material)
+    implementation(libs.timber)
+
+    // viewModels(), lifecycleScope 등 KTX 확장 (좌표는 Kotlin DSL 문법으로)
+    implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("androidx.fragment:fragment-ktx:1.8.3")
 }

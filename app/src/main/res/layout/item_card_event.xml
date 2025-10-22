@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="10dp"
+    android:paddingHorizontal="12dp">
+
+    <!-- 1행: 시간 | 가맹점 | 금액 -->
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2025-10-22 09:30:00"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvMerchant"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="가맹점"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintStart_toEndOf="@id/tvTime"
+        app:layout_constraintEnd_toStartOf="@id/tvAmount"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintTop_toTopOf="@id/tvTime"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"/>
+
+    <TextView
+        android:id="@+id/tvAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12,700"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        app:layout_constraintTop_toTopOf="@id/tvTime"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 2행: 카드사(끝 4자리) | 할부 | 카테고리 | 수집출처 -->
+    <TextView
+        android:id="@+id/tvCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="신한(1054)"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTime"
+        android:layout_marginTop="6dp"/>
+
+    <TextView
+        android:id="@+id/tvInstallment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="일시불"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintStart_toEndOf="@id/tvCard"
+        app:layout_constraintTop_toTopOf="@id/tvCard"
+        android:layout_marginStart="12dp"/>
+
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="카페"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintStart_toEndOf="@id/tvInstallment"
+        app:layout_constraintTop_toTopOf="@id/tvCard"
+        android:layout_marginStart="12dp"/>
+
+    <TextView
+        android:id="@+id/tvSource"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SMS"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvCard"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
