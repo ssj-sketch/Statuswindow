@@ -2,9 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_NOTIFICATION_HISTORY" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+    <!-- 위치 정보 권한 (국가 자동 감지용) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- 네트워크 상태 확인 권한 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    
+    <!-- 전화 상태 확인 권한 (SIM 카드 국가 코드 확인용) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
-        android:name=".StatusWindowApp"
+        android:name=".StatusWindowApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -29,14 +44,30 @@
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
+            <activity
+                android:name=".ui.CardEventActivity"
+                android:exported="false"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden|screenSize" />
+            <activity
+                android:name=".ui.IncomeDetailActivity"
+                android:exported="false"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden|screenSize" />
+            <activity
+                android:name=".ui.AssetManagementActivity"
+                android:exported="false"
+                android:screenOrientation="portrait"
+                android:configChanges="orientation|keyboardHidden|screenSize" />
+        
         <activity
-            android:name=".ui.CardEventActivity"
+            android:name=".ui.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
         
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name=".ui.DebugLogActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />

@@ -230,7 +230,7 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 버프/디버프 섹션 -->
+                <!-- 은퇴 계획 정보 -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -244,83 +244,421 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/title_buffs_debuffs"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="8dp"/>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recyclerViewModifiers"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false"/>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="🏦 은퇴자산"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnRetirementSettings"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="설정"
+                                android:textSize="12sp"
+                                app:icon="@android:drawable/ic_menu_preferences"
+                                app:iconSize="16dp"/>
+
+                        </LinearLayout>
+
+                        <!-- 은퇴설정 정보 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:background="@drawable/rounded_background"
+                            android:padding="8dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="생년월일"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/secondary_text_color"
+                                    android:gravity="center"/>
+
+                                <TextView
+                                    android:id="@+id/tvBirthDate"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="1989-01"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/primary_text_color"
+                                    android:gravity="center"/>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="가입개월수"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/secondary_text_color"
+                                    android:gravity="center"/>
+
+                                <TextView
+                                    android:id="@+id/tvPensionMonths"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="420개월"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/primary_text_color"
+                                    android:gravity="center"/>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="희망은퇴나이"
+                                    android:textSize="10sp"
+                                    android:textColor="@color/secondary_text_color"
+                                    android:gravity="center"/>
+
+                                <TextView
+                                    android:id="@+id/tvRetirementAge"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="60세"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/primary_text_color"
+                                    android:gravity="center"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- 목표 은퇴 자산 강조 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="@color/wealth_color"
+                            android:padding="12dp"
+                            android:alpha="0.1">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="목표 은퇴자산:"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/wealth_color"/>
+
+                            <TextView
+                                android:id="@+id/tvTargetRetirementAsset"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="10억 2,300만원"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/wealth_color"/>
+
+                        </LinearLayout>
+
+                        <!-- 자산 영향 그래프 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvAssetImpact"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="이번 달 소비: 0원 → 미래 자산 감소: 0원"
+                                android:textSize="12sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                            <ProgressBar
+                                android:id="@+id/progressAssetImpact"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp"
+                                android:layout_marginTop="8dp"
+                                android:max="100"
+                                android:progress="0"
+                                android:progressTint="@color/wealth_color"/>
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="은퇴 후 월 생활비:"
+                                android:textSize="16sp"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvMonthlyRetirementExpense"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0원"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/wealth_color"/>
+
+                        </LinearLayout>
+
+                        <!-- 국민연금 수령액 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="예상 국민연금:"
+                                android:textSize="16sp"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvPensionAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0원"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/wealth_color"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 라이브 피드 섹션 -->
+                <!-- 이번달 수입 섹션 -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/title_live_feed"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="8dp"/>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recyclerViewTimeline"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false"/>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="💰 이번달 수입"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvMonthlyIncome"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0원"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/income_color"/>
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvIncomeDetailLink"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="상세보기 >"
+                            android:textSize="14sp"
+                            android:textColor="@color/primary_color"
+                            android:textStyle="bold"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="8dp"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="급여, 부업, 투자수익 등"
+                            android:textSize="14sp"
+                            android:textColor="@color/secondary_text_color"/>
 
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 코칭 제안 섹션 -->
+                <!-- 이번달 카드 사용내역 섹션 -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/title_coaching_suggestions"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="8dp"/>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recyclerViewSuggestions"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false"/>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="이번달 카드 사용내역"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnViewDetails"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="상세보기"
+                                android:textSize="14sp"/>
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvMonthlyTotal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="0원"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/wealth_color"
+                            android:gravity="center"/>
+
+                        <TextView
+                            android:id="@+id/tvMonthlyCount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="0건"
+                            android:textSize="14sp"
+                            android:textColor="@color/secondary_text_color"
+                            android:gravity="center"/>
+
+                        <!-- 결제 예상액 섹션 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical"
+                            android:background="@drawable/rounded_background"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="이번달 결제 예상액"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvEstimatedTotal"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="0원"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_color"
+                                android:gravity="center"/>
+
+                            <TextView
+                                android:id="@+id/tvForecastInfo"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="예상 정보"
+                                android:textSize="12sp"
+                                android:textColor="@color/secondary_text_color"
+                                android:gravity="center"/>
+
+                        </LinearLayout>
+
+                        <!-- 엑셀 내보내기 버튼 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="center">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExportExcel"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="엑셀로 내보내기"
+                                android:textSize="12sp"
+                                android:drawableStart="@android:drawable/ic_menu_save"
+                                android:drawablePadding="8dp"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -402,70 +740,6 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- 이번달 카드 사용내역 섹션 -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="이번달 카드 사용내역"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/primary_text_color"/>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnViewDetails"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="상세보기"
-                                android:textSize="14sp"/>
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tvMonthlyTotal"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:text="0원"
-                            android:textSize="24sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/wealth_color"
-                            android:gravity="center"/>
-
-                        <TextView
-                            android:id="@+id/tvMonthlyCount"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="0건"
-                            android:textSize="14sp"
-                            android:textColor="@color/secondary_text_color"
-                            android:gravity="center"/>
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>
@@ -493,3 +767,4 @@
         app:menu="@menu/main_drawer"/>
 
 </androidx.drawerlayout.widget.DrawerLayout>
+

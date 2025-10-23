@@ -38,17 +38,6 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
-if defined STATUSWINDOW_USE_BUNDLED_GRADLE (
-    set "BUNDLED_GRADLE=%APP_HOME%\gradle-8.9\bin\gradle.bat"
-    if exist "%BUNDLED_GRADLE%" (
-        call "%BUNDLED_GRADLE%" %*
-        goto end
-    ) else (
-        echo STATUSWINDOW_USE_BUNDLED_GRADLE is set but "%BUNDLED_GRADLE%" is missing. 1>&2
-        goto fail
-    )
-)
-
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 

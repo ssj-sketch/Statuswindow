@@ -1,151 +1,120 @@
+// 경로: C:/app/Statuswindow/app/src/main/java/com/ssj/statuswindow/repo/CardEventRepository.kt
 package com.ssj.statuswindow.repo
 
 import android.content.Context
-import android.content.SharedPreferences
 import com.ssj.statuswindow.model.CardEvent
+import com.ssj.statuswindow.model.CardTransaction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.json.JSONArray
-import org.json.JSONObject
-import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * 간단 로컬 저장(SharedPreferences) + 메모리 캐시.
- * - 중복제거: (time + merchant + amount) 정규화 키 사용(부호 포함)
- * - 같은 앱에서 여러번 수집되어도, 키가 다르면 모두 보임
- * - 부가필드(cardBrand 등)도 JSON으로 함께 저장/복원
- */
-class CardEventRepository private constructor(ctx: Context) {
+class CardEventRepository private constructor(context: Context) {
 
-    private val prefs: SharedPreferences =
-        ctx.getSharedPreferences("card_events", Context.MODE_PRIVATE)
+    // 여기에 데이터베이스 인스턴스나 DAO 객체를 초기화하는 코드를 넣을 수 있습니다.
+    // 예: private val cardEventDao = AppDatabase.getDatabase(context).cardEventDao()
 
     private val _events = MutableStateFlow<List<CardEvent>>(emptyList())
-    val events: StateFlow<List<CardEvent>> get() = _events
+    val events: StateFlow<List<CardEvent>> = _events.asStateFlow()
+    
+    // CardTransaction 저장소
+    private val _transactions = MutableStateFlow<List<CardTransaction>>(emptyList())
+    val transactions: StateFlow<List<CardTransaction>> = _transactions.asStateFlow()
 
-    private val keys = ConcurrentHashMap.newKeySet<String>()
-
-    init {
-        load()
+    /**
+     * 단일 카드 이벤트를 추가합니다.
+     */
+    fun add(event: CardEvent) {
+        val currentEvents = _events.value.toMutableList()
+        currentEvents.add(event)
+        _events.value = currentEvents
     }
 
-    fun addAll(list: List<CardEvent>) {
-        if (list.isEmpty()) return
-        val cur = _events.value.toMutableList()
-        for (e in list) {
-            val key = normalizedKey(e)
-            if (keys.add(key)) {
-                cur.add(e)
-            }
+    /**
+     * 여러 개의 카드 이벤트 리스트를 데이터베이스에 추가합니다.
+     * (내부 구현은 프로젝트의 데이터베이스 구조에 맞게 작성해야 합니다.)
+     */
+    fun addAll(events: List<CardEvent>) {
+        val currentEvents = _events.value.toMutableList()
+        currentEvents.addAll(events)
+        _events.value = currentEvents
+        println("Adding ${events.size} card events to the repository.") // 임시 구현
+    }
+    
+    /**
+     * CardTransaction을 추가합니다.
+     */
+    fun addTransaction(transaction: CardTransaction) {
+        val currentTransactions = _transactions.value.toMutableList()
+        currentTransactions.add(transaction)
+        _transactions.value = currentTransactions
+    }
+    
+    /**
+     * 여러 CardTransaction을 추가합니다.
+     */
+    fun addAllTransactions(transactions: List<CardTransaction>) {
+        val currentTransactions = _transactions.value.toMutableList()
+        currentTransactions.addAll(transactions)
+        _transactions.value = currentTransactions
+    }
+    
+    /**
+     * 모든 CardTransaction을 가져옵니다.
+     */
+    fun getAllTransactions(): List<CardTransaction> {
+        return _transactions.value
+    }
+    
+    /**
+     * CardTransaction의 메모를 업데이트합니다.
+     */
+    fun updateTransactionMemo(transaction: CardTransaction, newMemo: String) {
+        val currentTransactions = _transactions.value.toMutableList()
+        val index = currentTransactions.indexOfFirst { 
+            it.cardNumber == transaction.cardNumber && 
+            it.amount == transaction.amount && 
+            it.transactionDate == transaction.transactionDate && 
+            it.merchant == transaction.merchant 
         }
-        cur.sortByDescending { it.time }
-        _events.value = cur
-        save()
-    }
-
-    fun add(e: CardEvent) = addAll(listOf(e))
-
-    private fun normalizedKey(e: CardEvent): String {
-        fun norm(s: String) = s.trim().replace("\\s+".toRegex(), " ").lowercase()
-        return "${norm(e.time)}|${norm(e.merchant)}|${e.amount}"
-    }
-
-    private fun load() {
-        val json = prefs.getString("events", "[]") ?: "[]"
-        val parsed = mutableListOf<CardEvent>()
-        keys.clear()
-
-        runCatching { JSONArray(json) }
-            .onFailure { err ->
-                Timber.w(err, "CardEventRepository: stored data corrupted, clearing cache")
-                prefs.edit().remove("events").apply()
-            }
-            .onSuccess { arr ->
-                for (i in 0 until arr.length()) {
-                    val obj = arr.optJSONObject(i) ?: continue
-                    val id = obj.optString("id").ifBlank { java.util.UUID.randomUUID().toString() }
-                    val time = obj.optString("time")
-                    val merchant = obj.optString("merchant")
-                    val amount = obj.optLongOrNull("amount") ?: continue
-                    val sourceApp = obj.optString("sourceApp").ifBlank { "unknown" }
-
-                    if (time.isBlank() || merchant.isBlank()) {
-                        Timber.w("CardEventRepository: skip malformed entry at %d", i)
-                        continue
-                    }
-
-                    val entry = CardEvent(
-                        id = id,
-                        time = time,
-                        merchant = merchant,
-                        amount = amount,
-                        sourceApp = sourceApp,
-                        raw = obj.optString("raw", ""),
-                        cardBrand = obj.optStringOrNull("cardBrand"),
-                        cardLast4 = obj.optStringOrNull("cardLast4"),
-                        installmentMonths = obj.optIntOrNull("installmentMonths"),
-                        category = obj.optStringOrNull("category"),
-                        cumulativeAmount = obj.optLongOrNull("cumulativeAmount"),
-                        holderMasked = obj.optStringOrNull("holderMasked")
-                    )
-
-                    parsed.add(entry)
-                    keys.add(normalizedKey(entry))
-                }
-            }
-
-        parsed.sortByDescending { it.time }
-        _events.value = parsed
-    }
-
-    private fun save() {
-        val arr = JSONArray()
-        _events.value.forEach { e ->
-            val o = JSONObject()
-            o.put("id", e.id)
-            o.put("time", e.time)
-            o.put("merchant", e.merchant)
-            o.put("amount", e.amount)
-            o.put("sourceApp", e.sourceApp)
-            o.put("raw", e.raw)
-
-            // optional fields
-            e.cardBrand?.let { o.put("cardBrand", it) }
-            e.cardLast4?.let { o.put("cardLast4", it) }
-            e.installmentMonths?.let { o.put("installmentMonths", it) }
-            e.category?.let { o.put("category", it) }
-            e.cumulativeAmount?.let { o.put("cumulativeAmount", it) }
-            e.holderMasked?.let { o.put("holderMasked", it) }
-
-            arr.put(o)
+        
+        if (index != -1) {
+            val updatedTransaction = currentTransactions[index].copy(memo = newMemo)
+            currentTransactions[index] = updatedTransaction
+            _transactions.value = currentTransactions
         }
-        prefs.edit().putString("events", arr.toString()).apply()
     }
-
-    // ---- JSONObject helpers ----
-
-    private fun JSONObject.optStringOrNull(key: String): String? =
-        if (has(key) && !isNull(key)) optString(key) else null
-
-    private fun JSONObject.optIntOrNull(key: String): Int? =
-        if (has(key) && !isNull(key)) optInt(key) else null
-
-    private fun JSONObject.optLongOrNull(key: String): Long? =
-        if (has(key) && !isNull(key)) {
-            // 숫자/문자 상관없이 Long으로 시도
-            when (val v = get(key)) {
-                is Number -> v.toLong()
-                is String -> v.toLongOrNull()
-                else -> null
-            }
-        } else null
+    
+    /**
+     * CardTransaction을 삭제합니다.
+     */
+    fun removeTransaction(transaction: CardTransaction) {
+        val currentTransactions = _transactions.value.toMutableList()
+        currentTransactions.removeAll { 
+            it.cardNumber == transaction.cardNumber && 
+            it.amount == transaction.amount && 
+            it.transactionDate == transaction.transactionDate && 
+            it.merchant == transaction.merchant 
+        }
+        _transactions.value = currentTransactions
+    }
 
     companion object {
-        @Volatile private var INSTANCE: CardEventRepository? = null
-        fun instance(ctx: Context): CardEventRepository =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: CardEventRepository(ctx.applicationContext).also { INSTANCE = it }
+        // @Volatile: 이 변수에 대한 변경 사항이 모든 스레드에 즉시 보이도록 합니다.
+        @Volatile
+        private var INSTANCE: CardEventRepository? = null
+
+        /**
+         * CardEventRepository의 싱글턴 인스턴스를 반환합니다.
+         * 인스턴스가 없으면 새로 생성하고, 있으면 기존 인스턴스를 반환합니다.
+         */
+        fun instance(context: Context): CardEventRepository {
+            // 엘비스 연산자(?:)를 사용하여 인스턴스가 null일 경우에만 synchronized 블록을 실행합니다.
+            return INSTANCE ?: synchronized(this) {
+                val instance = CardEventRepository(context.applicationContext)
+                INSTANCE = instance
+                // 반환
+                instance
             }
+        }
     }
 }

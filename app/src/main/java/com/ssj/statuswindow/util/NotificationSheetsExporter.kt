@@ -1,6 +1,6 @@
 package com.ssj.statuswindow.util
 
-import com.ssj.statuswindow.model.AppNotificationLog
+import com.ssj.statuswindow.data.model.AppNotificationLog
 import com.ssj.statuswindow.repo.NotificationLogRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

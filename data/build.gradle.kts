@@ -1,4 +1,4 @@
-plugins { id("com.android.library"); kotlin("android"); kotlin("kapt") }
+plugins { id("com.android.library"); kotlin("android") }
 
 android {
     namespace = "com.ssj.statuswindow.data"
@@ -32,16 +32,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    kapt(libs.androidx.room.compiler)
+    // Room temporarily disabled due to Windows SQLite access issues
+    // implementation(libs.androidx.room.runtime)
+    // implementation(libs.androidx.room.ktx)
+    // kapt(libs.androidx.room.compiler)
 
     implementation(libs.timber)
-}
-
-kapt {
-    javacOptions {
-        option("-source", "17")
-        option("-target", "17")
-    }
 }

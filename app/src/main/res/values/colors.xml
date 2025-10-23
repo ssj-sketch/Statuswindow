@@ -11,6 +11,9 @@
     <color name="vital_color">#FFF44336</color>
     <color name="cognition_color">#FF2196F3</color>
     <color name="balance_color">#FFFF9800</color>
+    <color name="income_color">#FF2E7D32</color>
+    <color name="profit_color">#FF2E7D32</color>
+    <color name="loss_color">#FFD32F2F</color>
     
     <!-- 진행바 색상 -->
     <color name="progress_track_color">#1F000000</color>

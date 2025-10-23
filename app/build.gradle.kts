@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.ssj.statuswindow"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ssj.statuswindow"
@@ -74,6 +74,9 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.2") // 버전을 libs.versions.fragmentKtx.get() 등으로 통일하는 것을 권장합니다.
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+
+    // JSON 직렬화를 위한 Gson
+    implementation("com.google.code.gson:gson:2.10.1")
 
 
     testImplementation(kotlin("test"))

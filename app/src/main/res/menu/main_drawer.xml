@@ -6,6 +6,14 @@
             android:icon="@android:drawable/ic_menu_view"
             android:title="@string/menu_card_events" />
         <item
+            android:id="@+id/nav_income_detail"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="수입 상세내역" />
+        <item
+            android:id="@+id/nav_asset_management"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="자산 관리" />
+        <item
             android:id="@+id/nav_notification_log"
             android:icon="@android:drawable/ic_menu_recent_history"
             android:title="@string/menu_notification_log" />

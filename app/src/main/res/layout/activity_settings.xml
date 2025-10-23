@@ -25,13 +25,551 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- 중복 거래 인식 설정 -->
+            <!-- 알림 권한 설정 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="알림 권한 설정"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_text_color"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="알림 접근 권한과 히스토리 권한을 설정하여 알림 데이터를 수집할 수 있습니다."
+                        android:textSize="14sp"
+                        android:textColor="@color/secondary_text_color"/>
+
+                    <!-- 알림 접근 권한 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="알림 접근 권한"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvNotificationAccessStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="권한 상태"
+                                android:textSize="14sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNotificationAccess"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="설정"
+                            android:textSize="12sp"/>
+
+                    </LinearLayout>
+
+                    <!-- 알림 히스토리 권한 (Android 13+) -->
+                    <LinearLayout
+                        android:id="@+id/layoutNotificationHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="알림 히스토리 권한"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvNotificationHistoryStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="권한 상태"
+                                android:textSize="14sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNotificationHistory"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="설정"
+                            android:textSize="12sp"/>
+
+                    </LinearLayout>
+
+                    <!-- 권한 설명 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="📋 권한 설명"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary_text_color"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="• 알림 접근 권한: 실시간 알림 수집\n• 알림 히스토리 권한: 과거 알림 데이터 가져오기 (Android 13+)\n• 두 권한 모두 설정해야 모든 기능을 사용할 수 있습니다"
+                            android:textSize="12sp"
+                            android:textColor="@color/secondary_text_color"
+                            android:lineSpacingExtra="2dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 위치 권한 설정 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="위치 권한 설정"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_text_color"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="위치 정보를 활용하여 국가를 자동으로 감지하고 적절한 SMS 파싱 엔진을 선택합니다."
+                        android:textSize="14sp"
+                        android:textColor="@color/secondary_text_color"/>
+
+                    <!-- 위치 권한 상태 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="위치 권한"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvLocationPermissionStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="권한 상태"
+                                android:textSize="14sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLocationPermission"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="설정"
+                            android:textSize="12sp"/>
+
+                    </LinearLayout>
+
+                    <!-- 현재 감지된 국가 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="감지된 국가"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:id="@+id/tvDetectedCountry"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="한국 (KR)"
+                                android:textSize="14sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRefreshCountry"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="새로고침"
+                            android:textSize="12sp"/>
+
+                    </LinearLayout>
+
+                    <!-- 국가 수동 선택 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="수동 국가 선택"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/primary_text_color"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="자동 감지가 부정확한 경우 수동으로 선택할 수 있습니다"
+                                android:textSize="12sp"
+                                android:textColor="@color/secondary_text_color"/>
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnManualCountrySelect"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="선택"
+                            android:textSize="12sp"/>
+
+                    </LinearLayout>
+
+                    <!-- 권한 설명 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:background="@drawable/rounded_background"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🌍 위치 권한 설명"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary_text_color"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="• 위치 권한: 정확한 국가 감지를 위해 사용\n• 디바이스 로케일: 언어 설정 기반 국가 추정\n• SIM 카드: 통신사 국가 코드 확인\n• 위치 권한이 없어도 기본 기능은 사용 가능합니다"
+                            android:textSize="12sp"
+                            android:textColor="@color/secondary_text_color"
+                            android:lineSpacingExtra="2dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+                   <!-- 디버그 로그 -->
+                   <com.google.android.material.card.MaterialCardView
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:layout_marginBottom="16dp"
+                       app:cardCornerRadius="12dp"
+                       app:cardElevation="2dp">
+
+                       <LinearLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:orientation="vertical"
+                           android:padding="16dp">
+
+                           <TextView
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:text="디버그 로그"
+                               android:textSize="18sp"
+                               android:textStyle="bold"
+                               android:textColor="@color/primary_text_color"/>
+
+                           <TextView
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="8dp"
+                               android:text="앱 크래시 및 오류 로그를 확인할 수 있습니다."
+                               android:textSize="14sp"
+                               android:textColor="@color/secondary_text_color"/>
+
+                           <com.google.android.material.button.MaterialButton
+                               android:id="@+id/btnDebugLogs"
+                               style="@style/Widget.Material3.Button"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="12dp"
+                               android:text="로그 확인"
+                               android:textSize="14sp"
+                               app:icon="@android:drawable/ic_menu_report_image"
+                               app:iconGravity="textStart"/>
+
+                       </LinearLayout>
+
+                   </com.google.android.material.card.MaterialCardView>
+
+                   <!-- 은퇴 계획 설정 -->
+                   <com.google.android.material.card.MaterialCardView
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:layout_marginBottom="16dp"
+                       app:cardCornerRadius="12dp"
+                       app:cardElevation="2dp">
+
+                       <LinearLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:orientation="vertical"
+                           android:padding="16dp">
+
+                           <TextView
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:text="은퇴 계획 설정"
+                               android:textSize="18sp"
+                               android:textStyle="bold"
+                               android:textColor="@color/primary_text_color"/>
+
+                           <TextView
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="8dp"
+                               android:text="현재 나이와 은퇴 희망 나이를 설정하여 은퇴 계획을 수립합니다."
+                               android:textSize="14sp"
+                               android:textColor="@color/secondary_text_color"/>
+
+                           <!-- 현재 나이 -->
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="16dp"
+                               android:orientation="horizontal"
+                               android:gravity="center_vertical">
+
+                               <TextView
+                                   android:layout_width="0dp"
+                                   android:layout_height="wrap_content"
+                                   android:layout_weight="1"
+                                   android:text="현재 나이:"
+                                   android:textSize="16sp"
+                                   android:textColor="@color/primary_text_color"/>
+
+                               <TextView
+                                   android:id="@+id/tvCurrentAge"
+                                   android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   android:text="35세"
+                                   android:textSize="16sp"
+                                   android:textStyle="bold"
+                                   android:textColor="@color/wealth_color"/>
+
+                           </LinearLayout>
+
+                           <com.google.android.material.slider.Slider
+                               android:id="@+id/sliderCurrentAge"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="8dp"
+                               android:value="35"
+                               android:valueFrom="20"
+                               android:valueTo="60"
+                               android:stepSize="1"/>
+
+                           <!-- 은퇴 희망 나이 -->
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="16dp"
+                               android:orientation="horizontal"
+                               android:gravity="center_vertical">
+
+                               <TextView
+                                   android:layout_width="0dp"
+                                   android:layout_height="wrap_content"
+                                   android:layout_weight="1"
+                                   android:text="은퇴 희망 나이:"
+                                   android:textSize="16sp"
+                                   android:textColor="@color/primary_text_color"/>
+
+                               <TextView
+                                   android:id="@+id/tvRetirementAge"
+                                   android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   android:text="60세"
+                                   android:textSize="16sp"
+                                   android:textStyle="bold"
+                                   android:textColor="@color/wealth_color"/>
+
+                           </LinearLayout>
+
+                           <com.google.android.material.slider.Slider
+                               android:id="@+id/sliderRetirementAge"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="8dp"
+                               android:value="60"
+                               android:valueFrom="50"
+                               android:valueTo="70"
+                               android:stepSize="1"/>
+
+                           <!-- 국가 설정 -->
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="16dp"
+                               android:orientation="horizontal"
+                               android:gravity="center_vertical">
+
+                               <TextView
+                                   android:layout_width="0dp"
+                                   android:layout_height="wrap_content"
+                                   android:layout_weight="1"
+                                   android:text="국가:"
+                                   android:textSize="16sp"
+                                   android:textColor="@color/primary_text_color"/>
+
+                               <TextView
+                                   android:id="@+id/tvCountry"
+                                   android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   android:text="한국"
+                                   android:textSize="16sp"
+                                   android:textStyle="bold"
+                                   android:textColor="@color/wealth_color"/>
+
+                           </LinearLayout>
+
+                           <com.google.android.material.button.MaterialButton
+                               android:id="@+id/btnSelectCountry"
+                               style="@style/Widget.Material3.Button.OutlinedButton"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginTop="8dp"
+                               android:text="국가 선택"
+                               android:textSize="14sp"/>
+
+                       </LinearLayout>
+
+                   </com.google.android.material.card.MaterialCardView>
+
+                   <!-- 중복 거래 인식 설정 -->
+                   <com.google.android.material.card.MaterialCardView
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:layout_marginBottom="16dp"
+                       app:cardCornerRadius="12dp"
+                       app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"

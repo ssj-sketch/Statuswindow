@@ -1,142 +1,70 @@
 package com.ssj.statuswindow.repo
 
 import android.content.Context
-import android.content.SharedPreferences
-import com.ssj.statuswindow.R
-import com.ssj.statuswindow.model.AppNotificationLog
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import org.json.JSONArray
-import org.json.JSONObject
-import timber.log.Timber
+import com.ssj.statuswindow.data.db.AppDatabase
+import com.ssj.statuswindow.data.model.AppNotificationLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.runBlocking
 
-class NotificationLogRepository private constructor(ctx: Context) {
+/**
+ * 알림 로그 데이터베이스에 접근하기 위한 리포지토리 클래스입니다.
+ * 싱글턴 패턴을 사용하여 앱 전체에서 단일 인스턴스를 유지합니다.
+ */
+class NotificationLogRepository private constructor(context: Context) {
 
-    private val context = ctx.applicationContext
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("notification_logs", Context.MODE_PRIVATE)
+    // Room 데이터베이스의 DAO(Data Access Object) 인스턴스를 가져옵니다.
+    // AppDatabase.getDatabase()는 데이터베이스 인스턴스를 생성하거나 가져오는 싱글턴 메서드여야 합니다.
+    private val logDao = AppDatabase.getDatabase(context).notificationLogDao()
 
-class NotificationLogRepository private constructor(ctx: Context) {
+    /**
+     * 모든 알림 로그를 Flow로 반환합니다.
+     */
+    val logs: Flow<List<AppNotificationLog>> = logDao.getAllFlow()
 
-    private val prefs: SharedPreferences =
-        ctx.getSharedPreferences("notification_logs", Context.MODE_PRIVATE)
-
-    private val _logs = MutableStateFlow<List<AppNotificationLog>>(emptyList())
-    val logs: StateFlow<List<AppNotificationLog>> get() = _logs
-
-    init {
-        load()
+    /**
+     * 새로운 알림 로그 하나를 데이터베이스에 추가합니다.
+     * 이 함수는 코루틴 내에서 호출되어야 합니다 (suspend 함수).
+     */
+    suspend fun add(log: AppNotificationLog) {
+        logDao.insert(log)
     }
 
-    fun add(entry: AppNotificationLog) {
-        addAll(listOf(entry))
-    }
-
-    fun addAll(entries: List<AppNotificationLog>) {
-        if (entries.isEmpty()) return
-        val merged = linkedMapOf<String, AppNotificationLog>()
-        _logs.value.forEach { merged[it.id] = it }
-        for (entry in entries) {
-            merged[entry.id] = entry
+    /**
+     * 데이터베이스에 저장된 모든 알림 로그의 현재 스냅샷을 동기적으로 반환합니다.
+     * 이 함수가 바로 NotificationSheetsExporter.kt에서 호출하는 함수입니다.
+     *
+     * runBlocking을 사용하여 suspend 함수인 logDao.getAll()을 동기적으로 실행합니다.
+     * NotificationSheetsExporter에서는 이미 IO Dispatcher를 사용하고 있으므로,
+     * 이 코드가 메인 스레드를 차단하지 않습니다.
+     */
+    fun snapshot(): List<AppNotificationLog> {
+        return runBlocking(Dispatchers.IO) {
+            logDao.getAll()
         }
-        val sorted = merged.values
-            .sortedByDescending { it.postedAtEpochMillis }
-            .take(MAX_ENTRIES)
-        _logs.value = sorted
-        save()
     }
 
-    fun snapshot(): List<AppNotificationLog> = _logs.value.toList()
-
-    fun clear() {
-        _logs.value = emptyList()
-        save()
-    }
-
-    private fun load() {
-        val json = prefs.getString("logs", "[]") ?: "[]"
-        val parsed = mutableListOf<AppNotificationLog>()
-
-        runCatching { JSONArray(json) }
-            .onFailure { err ->
-                Timber.w(err, "NotificationLogRepository: stored data corrupted, clearing cache")
-                prefs.edit().remove("logs").apply()
-            }
-            .onSuccess { arr ->
-                for (i in 0 until arr.length()) {
-                    val obj = arr.optJSONObject(i) ?: continue
-                    val id = obj.optString("id")
-                    val packageName = obj.optString("packageName")
-                    val postedAtIso = obj.optString("postedAtIso")
-                    if (id.isBlank() || packageName.isBlank() || postedAtIso.isBlank()) {
-                        Timber.w("NotificationLogRepository: skip malformed entry at %d", i)
-                        continue
-                    }
-
-                    val entry = AppNotificationLog(
-                        id = id,
-                        packageName = packageName,
-                        appName = obj.optString("appName", packageName).ifBlank { packageName },
-                        appCategory = obj.optString("appCategory", context.getString(R.string.category_app_other)),
-                        postedAtIso = postedAtIso,
-                        postedAtEpochMillis = obj.optLong("postedAtEpochMillis", 0L),
-                        notificationCategory = obj.optStringOrNull("notificationCategory"),
-                        content = obj.optString("content", "")
-                    )
-
-                    parsed.add(entry)
-                }
-            }
-
-        parsed.sortByDescending { it.postedAtEpochMillis }
-        _logs.value = parsed.take(MAX_ENTRIES)
-        val arr = JSONArray(json)
-        val list = mutableListOf<AppNotificationLog>()
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            val entry = AppNotificationLog(
-                id = o.getString("id"),
-                packageName = o.getString("packageName"),
-                appName = o.optString("appName", o.getString("packageName")),
-                appCategory = o.optString("appCategory", "Uncategorized"),
-                postedAtIso = o.getString("postedAtIso"),
-                postedAtEpochMillis = o.optLong("postedAtEpochMillis", 0L),
-                notificationCategory = o.optStringOrNull("notificationCategory"),
-                content = o.optString("content", "")
-            )
-            list.add(entry)
-        }
-        list.sortByDescending { it.postedAtEpochMillis }
-        _logs.value = list.take(MAX_ENTRIES)
-    }
-
-    private fun save() {
-        val arr = JSONArray()
-        _logs.value.forEach { entry ->
-            val o = JSONObject()
-            o.put("id", entry.id)
-            o.put("packageName", entry.packageName)
-            o.put("appName", entry.appName)
-            o.put("appCategory", entry.appCategory)
-            o.put("postedAtIso", entry.postedAtIso)
-            o.put("postedAtEpochMillis", entry.postedAtEpochMillis)
-            entry.notificationCategory?.let { o.put("notificationCategory", it) }
-            o.put("content", entry.content)
-            arr.put(o)
-        }
-        prefs.edit().putString("logs", arr.toString()).apply()
-    }
-
-    private fun JSONObject.optStringOrNull(key: String): String? =
-        if (has(key) && !isNull(key)) optString(key) else null
+    // 여기에 다른 리포지토리 관련 함수가 있다면 추가할 수 있습니다.
+    // 예: 특정 로그를 삭제하거나 조회하는 함수 등
 
     companion object {
-        private const val MAX_ENTRIES = 500
-        @Volatile private var INSTANCE: NotificationLogRepository? = null
+        // @Volatile 어노테이션은 INSTANCE 변수가 메인 메모리에만 저장되도록 보장하여
+        // 여러 스레드에서 접근할 때 발생할 수 있는 문제를 방지합니다.
+        @Volatile
+        private var INSTANCE: NotificationLogRepository? = null
 
-        fun instance(ctx: Context): NotificationLogRepository =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: NotificationLogRepository(ctx.applicationContext).also { INSTANCE = it }
+        /**
+         * NotificationLogRepository의 싱글턴 인스턴스를 가져옵니다.
+         * 인스턴스가 존재하지 않으면 스레드에 안전한 방식으로 새로 생성합니다.
+         */
+        fun instance(context: Context): NotificationLogRepository {
+            // 엘비스 연산자(?:)를 사용하여 인스턴스가 null일 경우에만 synchronized 블록을 실행합니다.
+            return INSTANCE ?: synchronized(this) {
+                // synchronized 블록 내에서 다시 한번 null 체크를 하여
+                // 여러 스레드가 동시에 접근했을 때 인스턴스가 중복 생성되는 것을 방지합니다.
+                val instance = INSTANCE ?: NotificationLogRepository(context.applicationContext).also { INSTANCE = it }
+                instance
             }
+        }
     }
 }

@@ -6,9 +6,12 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.ssj.statuswindow.repo.CardEventRepository
 import com.ssj.statuswindow.repo.NotificationLogRepository
-import com.ssj.statuswindow.model.AppNotificationLog
+import com.ssj.statuswindow.data.model.AppNotificationLog
 import com.ssj.statuswindow.util.AppCategoryResolver
 import com.ssj.statuswindow.util.SmsParser
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -18,6 +21,7 @@ class StatusNotificationListener : NotificationListenerService() {
     private val cardRepo by lazy { CardEventRepository.instance(this) }
     private val notificationRepo by lazy { NotificationLogRepository.instance(this) }
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun onListenerConnected() {
         super.onListenerConnected()
@@ -85,7 +89,9 @@ class StatusNotificationListener : NotificationListenerService() {
             notificationCategory = notificationCategory,
             content = content
         )
-        notificationRepo.add(entry)
+        coroutineScope.launch {
+            notificationRepo.add(entry)
+        }
     }
 
     private fun buildNotificationId(sbn: StatusBarNotification): String {

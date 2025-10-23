@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ssj.statuswindow.databinding.ItemNotificationLogBinding
-import com.ssj.statuswindow.model.AppNotificationLog
+import com.ssj.statuswindow.data.model.AppNotificationLog
 
 class NotificationLogAdapter :
     ListAdapter<AppNotificationLog, NotificationLogAdapter.NotificationLogViewHolder>(DiffCallback) {

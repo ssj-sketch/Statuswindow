@@ -1,90 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
+    <!-- 왼쪽: 가맹점 정보 -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        <!-- 상단: 카드 정보와 금액 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:id="@+id/tvCardInfo"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="신한카드(1054)"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_text_color"/>
-
-            <TextView
-                android:id="@+id/tvAmount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="42,820원"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/wealth_color"/>
-
-        </LinearLayout>
-
-        <!-- 중간: 가맹점 -->
+        <!-- 가맹점명 -->
         <TextView
             android:id="@+id/tvMerchant"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="이마트"
-            android:textSize="14sp"
-            android:textColor="@color/primary_text_color"/>
+            android:text="주식회사 이마트 과천점"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:maxLines="2"
+            android:ellipsize="end"/>
 
-        <!-- 하단: 사용자와 날짜 -->
-        <LinearLayout
+        <!-- 거래일자 및 상세 정보 -->
+        <TextView
+            android:id="@+id/tvTransactionInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:id="@+id/tvUser"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="신*진"
-                android:textSize="12sp"
-                android:textColor="@color/secondary_text_color"/>
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="12dp"
-                android:layout_marginHorizontal="8dp"
-                android:background="@color/progress_track_color"/>
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="10/21 14:59"
-                android:textSize="12sp"
-                android:textColor="@color/secondary_text_color"/>
-
-        </LinearLayout>
+            android:text="2025.10.20 | 본인105"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"/>
 
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+    <!-- 중간: 금액 -->
+    <TextView
+        android:id="@+id/tvAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:text="42,820원"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"/>
+
+    <!-- 오른쪽: 삭제 버튼 -->
+    <ImageButton
+        android:id="@+id/btnDelete"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_vertical"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_delete"
+        android:contentDescription="삭제"
+        android:padding="6dp"
+        android:scaleType="fitCenter"/>
+
+</LinearLayout>

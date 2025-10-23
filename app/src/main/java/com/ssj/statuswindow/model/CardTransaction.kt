@@ -16,5 +16,6 @@ data class CardTransaction(
     val merchant: String,           // 가맹점 (예: 이마트)
     val cumulativeAmount: Long,     // 누적사용금액 (예: 1903674)
     val category: String? = null,   // 카테고리 (머신러닝으로 자동분류)
+    val memo: String = "",         // 사용자 메모
     val originalText: String        // 원본 SMS 텍스트
 )
