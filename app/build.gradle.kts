@@ -69,4 +69,6 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.3")
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+
+    testImplementation(kotlin("test"))
 }

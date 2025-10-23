@@ -24,6 +24,8 @@ object AppCategoryResolver {
             ApplicationInfo.CATEGORY_UNDEFINED, ApplicationInfo.CATEGORY_OTHER ->
                 context.getString(R.string.category_app_other)
             else -> context.getString(R.string.category_app_other)
+            ApplicationInfo.CATEGORY_UNDEFINED, ApplicationInfo.CATEGORY_OTHER, else ->
+                context.getString(R.string.category_app_other)
         }
     }
 }
