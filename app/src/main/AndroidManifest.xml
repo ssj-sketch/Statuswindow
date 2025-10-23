@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".StatusWindowApp"
         android:allowBackup="true"
@@ -21,6 +23,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.NotificationLogActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <!-- 알림 접근 리스너 서비스 -->
         <service
             android:name=".notification.StatusNotificationListener"
@@ -33,9 +41,5 @@
         </service>
 
     </application>
-
-    <!-- (선택) 인터넷 권한이 필요하면 주석 해제
-    <uses-permission android:name="android.permission.INTERNET" />
-    -->
 
 </manifest>
