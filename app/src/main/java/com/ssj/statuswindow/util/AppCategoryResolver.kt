@@ -4,6 +4,15 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Build
+import com.ssj.statuswindow.R
+
+/**
+ * 알림을 보낸 앱의 카테고리를 로컬라이즈된 문자열로 변환합니다.
+ * API 26 이전에는 카테고리 메타데이터가 제공되지 않으므로 항상 "기타" 라벨을 반환합니다.
+ */
+object AppCategoryResolver {
+
+    private val categoryLabelResIds: Map<Int, Int> = mapOf(
 import androidx.core.content.pm.ApplicationInfoCompat
 import com.ssj.statuswindow.R
 
@@ -35,6 +44,10 @@ object AppCategoryResolver {
 
     @SuppressLint("InlinedApi")
     fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
+        val unknownLabel = context.getString(R.string.category_app_unknown)
+        val fallbackLabel = context.getString(R.string.category_app_other)
+
+        val info = applicationInfo ?: return unknownLabel
         val fallback = context.getString(R.string.category_app_other)
 
         if (applicationInfo == null) {
@@ -64,6 +77,8 @@ object AppCategoryResolver {
             return fallbackLabel
         }
 
+        val labelResId = categoryLabelResIds[info.category] ?: R.string.category_app_other
+        return context.getString(labelResId)
         @SuppressLint("InlinedApi")
         val category = ApplicationInfoCompat.getCategory(applicationInfo)
 
