@@ -13,6 +13,7 @@ import com.ssj.statuswindow.R
 object AppCategoryResolver {
 
     @SuppressLint("InlinedApi")
+    private val categoryLabelResIds: Map<Int, Int> = mapOf(
     fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
         val unknownLabel = context.getString(R.string.category_app_unknown)
         val fallbackLabelResId = R.string.category_app_other
@@ -49,6 +50,22 @@ object AppCategoryResolver {
         ApplicationInfo.CATEGORY_SOCIAL to R.string.category_app_social,
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video,
         ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
+    )
+
+    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
+        val info = applicationInfo ?: return context.getString(R.string.category_app_unknown)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return context.getString(R.string.category_app_other)
+        }
+
+        val labelResId = resolveLabelResId(info.category) ?: R.string.category_app_other
+        return context.getString(labelResId)
+    }
+
+    @SuppressLint("InlinedApi")
+    private fun resolveLabelResId(category: Int): Int? {
+        return categoryLabelResIds[category]
         ApplicationInfo.CATEGORY_OTHER to R.string.category_app_other,
         ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video
