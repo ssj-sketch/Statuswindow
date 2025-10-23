@@ -66,4 +66,6 @@ dependencies {
     // viewModels(), lifecycleScope 등 KTX 확장 (좌표는 Kotlin DSL 문법으로)
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.fragment:fragment-ktx:1.8.3")
+
+    testImplementation(kotlin("test"))
 }
