@@ -7,29 +7,6 @@ import android.os.Build
 import com.ssj.statuswindow.R
 
 /**
- * 알림을 보낸 앱의 카테고리를 로컬라이즈된 문자열로 변환합니다.
- * API 26 이전에는 카테고리 메타데이터가 제공되지 않으므로 항상 "기타" 라벨을 반환합니다.
- */
-object AppCategoryResolver {
-
-    @SuppressLint("InlinedApi")
-    private val categoryLabelResIds: Map<Int, Int> = mapOf(
-    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
-        val unknownLabel = context.getString(R.string.category_app_unknown)
-        val fallbackLabelResId = R.string.category_app_other
-
-        val info = applicationInfo ?: return unknownLabel
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return context.getString(fallbackLabelResId)
-        }
-
-        val labelResId = when (info.category) {
-    private val categoryLabelResIds: Map<Int, Int> = mapOf(
-import androidx.core.content.pm.ApplicationInfoCompat
-import com.ssj.statuswindow.R
-
-/**
  * Resolves user-facing labels for notification posting apps. The platform only started exposing
  * category metadata in API 26, so older devices always fall back to the generic "other" label.
  */
@@ -37,10 +14,6 @@ object AppCategoryResolver {
 
     @SuppressLint("InlinedApi")
     private val categoryLabelResIds: Map<Int, Int> = mapOf(
-object AppCategoryResolver {
-
-    @SuppressLint("InlinedApi")
-    private val CATEGORY_LABELS: Map<Int, Int> = mapOf(
         ApplicationInfo.CATEGORY_AUDIO to R.string.category_app_audio,
         ApplicationInfo.CATEGORY_GAME to R.string.category_app_game,
         ApplicationInfo.CATEGORY_IMAGE to R.string.category_app_image,
@@ -48,127 +21,29 @@ object AppCategoryResolver {
         ApplicationInfo.CATEGORY_NEWS to R.string.category_app_news,
         ApplicationInfo.CATEGORY_PRODUCTIVITY to R.string.category_app_productivity,
         ApplicationInfo.CATEGORY_SOCIAL to R.string.category_app_social,
-        ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video,
-        ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
-    )
-
-    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
-        val info = applicationInfo ?: return context.getString(R.string.category_app_unknown)
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return context.getString(R.string.category_app_other)
-        }
-
-        val labelResId = resolveLabelResId(info.category) ?: R.string.category_app_other
-        return context.getString(labelResId)
-    }
-
-    @SuppressLint("InlinedApi")
-    private fun resolveLabelResId(category: Int): Int? {
-        return categoryLabelResIds[category]
-        ApplicationInfo.CATEGORY_OTHER to R.string.category_app_other,
-        ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video
     )
 
-    @SuppressLint("InlinedApi")
+    /**
+     * Translates the category of the app that sent the notification into a localized string.
+     * Before API 26, category metadata is not available, so it always returns the "Other" label.
+     */
     fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
-        val unknownLabel = context.getString(R.string.category_app_unknown)
-        val fallbackLabel = context.getString(R.string.category_app_other)
-
-        val info = applicationInfo ?: return unknownLabel
-        val fallback = context.getString(R.string.category_app_other)
-
+        // If applicationInfo is null, return an "unknown" label.
         if (applicationInfo == null) {
             return context.getString(R.string.category_app_unknown)
         }
 
+        // For Android versions before Oreo (API 26), app categories are not available.
+        // Fall back to a generic "other" category.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return fallback
+            return context.getString(R.string.category_app_other)
         }
 
-        val category = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            applicationInfo.category
-        } else {
-            ApplicationInfo.CATEGORY_UNDEFINED
-        }
-        val labelResId = categoryLabelResIds[category] ?: R.string.category_app_other
+        // Get the category from ApplicationInfo and find the corresponding string resource ID.
+        // If the category is not in our map, or is UNDEFINED, use the "other" label as a fallback.
+        val labelResId = categoryLabelResIds[applicationInfo.category] ?: R.string.category_app_other
 
         return context.getString(labelResId)
-        val category = ApplicationInfoCompat.getCategory(applicationInfo)
-        val labelResId = categoryLabelResIds[category] ?: R.string.category_app_other
-
-        return context.getString(labelResId)
-        val fallbackResId = R.string.category_app_other
-        val fallbackLabel = context.getString(R.string.category_app_other)
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return fallbackLabel
-        }
-
-        val labelResId = categoryLabelResIds[info.category] ?: R.string.category_app_other
-        return context.getString(labelResId)
-        @SuppressLint("InlinedApi")
-        val category = ApplicationInfoCompat.getCategory(applicationInfo)
-
-        return when (category) {
-        val fallbackResId = R.string.category_app_other
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return context.getString(fallbackResId)
-        }
-
-        val labelResId = CATEGORY_LABELS[ApplicationInfoCompat.getCategory(applicationInfo)]
-            ?: fallbackResId
-
-        return context.getString(labelResId)
-        val labelResId = when (ApplicationInfoCompat.getCategory(applicationInfo)) {
-        val category = ApplicationInfoCompat.getCategory(applicationInfo)
-        val labelResId = when (category) {
-            ApplicationInfo.CATEGORY_AUDIO -> R.string.category_app_audio
-            ApplicationInfo.CATEGORY_GAME -> R.string.category_app_game
-            ApplicationInfo.CATEGORY_IMAGE -> R.string.category_app_image
-            ApplicationInfo.CATEGORY_MAPS -> R.string.category_app_maps
-            ApplicationInfo.CATEGORY_NEWS -> R.string.category_app_news
-            ApplicationInfo.CATEGORY_PRODUCTIVITY -> R.string.category_app_productivity
-            ApplicationInfo.CATEGORY_SOCIAL -> R.string.category_app_social
-            ApplicationInfo.CATEGORY_VIDEO -> R.string.category_app_video
-            ApplicationInfo.CATEGORY_UNDEFINED -> fallbackLabelResId
-            else -> fallbackLabelResId
-        }
-
-        return context.getString(labelResId)
-            ApplicationInfo.CATEGORY_UNDEFINED,
-            ApplicationInfo.CATEGORY_OTHER -> fallbackResId
-            else -> fallbackResId
-        }
-
-        return context.getString(labelResId)
-    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
-        if (applicationInfo == null) return context.getString(R.string.category_app_unknown)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return context.getString(R.string.category_app_unknown)
-        }
-        val fallback = context.getString(R.string.category_app_other)
-        return when (ApplicationInfoCompat.getCategory(applicationInfo)) {
-            ApplicationInfo.CATEGORY_AUDIO -> context.getString(R.string.category_app_audio)
-            ApplicationInfo.CATEGORY_GAME -> context.getString(R.string.category_app_game)
-            ApplicationInfo.CATEGORY_IMAGE -> context.getString(R.string.category_app_image)
-            ApplicationInfo.CATEGORY_MAPS -> context.getString(R.string.category_app_maps)
-            ApplicationInfo.CATEGORY_NEWS -> context.getString(R.string.category_app_news)
-            ApplicationInfo.CATEGORY_PRODUCTIVITY -> context.getString(R.string.category_app_productivity)
-            ApplicationInfo.CATEGORY_SOCIAL -> context.getString(R.string.category_app_social)
-            ApplicationInfo.CATEGORY_VIDEO -> context.getString(R.string.category_app_video)
-            else -> fallbackLabel
-            ApplicationInfo.CATEGORY_UNDEFINED -> fallback
-            else -> fallback
-            ApplicationInfo.CATEGORY_UNDEFINED -> context.getString(R.string.category_app_other)
-            else -> context.getString(R.string.category_app_other)
-            ApplicationInfo.CATEGORY_UNDEFINED, ApplicationInfo.CATEGORY_OTHER ->
-                context.getString(R.string.category_app_other)
-            else -> context.getString(R.string.category_app_other)
-            ApplicationInfo.CATEGORY_UNDEFINED, ApplicationInfo.CATEGORY_OTHER, else ->
-                context.getString(R.string.category_app_other)
-        }
     }
 }
