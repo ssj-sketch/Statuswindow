@@ -2,11 +2,19 @@ package com.ssj.statuswindow.repo
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.ssj.statuswindow.R
 import com.ssj.statuswindow.model.AppNotificationLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import timber.log.Timber
+
+class NotificationLogRepository private constructor(ctx: Context) {
+
+    private val context = ctx.applicationContext
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("notification_logs", Context.MODE_PRIVATE)
 
 class NotificationLogRepository private constructor(ctx: Context) {
 
@@ -47,6 +55,41 @@ class NotificationLogRepository private constructor(ctx: Context) {
 
     private fun load() {
         val json = prefs.getString("logs", "[]") ?: "[]"
+        val parsed = mutableListOf<AppNotificationLog>()
+
+        runCatching { JSONArray(json) }
+            .onFailure { err ->
+                Timber.w(err, "NotificationLogRepository: stored data corrupted, clearing cache")
+                prefs.edit().remove("logs").apply()
+            }
+            .onSuccess { arr ->
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    val id = obj.optString("id")
+                    val packageName = obj.optString("packageName")
+                    val postedAtIso = obj.optString("postedAtIso")
+                    if (id.isBlank() || packageName.isBlank() || postedAtIso.isBlank()) {
+                        Timber.w("NotificationLogRepository: skip malformed entry at %d", i)
+                        continue
+                    }
+
+                    val entry = AppNotificationLog(
+                        id = id,
+                        packageName = packageName,
+                        appName = obj.optString("appName", packageName).ifBlank { packageName },
+                        appCategory = obj.optString("appCategory", context.getString(R.string.category_app_other)),
+                        postedAtIso = postedAtIso,
+                        postedAtEpochMillis = obj.optLong("postedAtEpochMillis", 0L),
+                        notificationCategory = obj.optStringOrNull("notificationCategory"),
+                        content = obj.optString("content", "")
+                    )
+
+                    parsed.add(entry)
+                }
+            }
+
+        parsed.sortByDescending { it.postedAtEpochMillis }
+        _logs.value = parsed.take(MAX_ENTRIES)
         val arr = JSONArray(json)
         val list = mutableListOf<AppNotificationLog>()
         for (i in 0 until arr.length()) {
