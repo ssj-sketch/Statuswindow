@@ -15,6 +15,7 @@ object AppCategoryResolver {
             return context.getString(R.string.category_app_unknown)
         }
 
+        val fallbackResId = R.string.category_app_other
         val fallbackLabel = context.getString(R.string.category_app_other)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
@@ -31,6 +32,7 @@ object AppCategoryResolver {
             return context.getString(fallbackResId)
         }
 
+        val labelResId = when (ApplicationInfoCompat.getCategory(applicationInfo)) {
         val category = ApplicationInfoCompat.getCategory(applicationInfo)
         val labelResId = when (category) {
             ApplicationInfo.CATEGORY_AUDIO -> R.string.category_app_audio
@@ -41,6 +43,8 @@ object AppCategoryResolver {
             ApplicationInfo.CATEGORY_PRODUCTIVITY -> R.string.category_app_productivity
             ApplicationInfo.CATEGORY_SOCIAL -> R.string.category_app_social
             ApplicationInfo.CATEGORY_VIDEO -> R.string.category_app_video
+            ApplicationInfo.CATEGORY_UNDEFINED,
+            ApplicationInfo.CATEGORY_OTHER -> fallbackResId
             else -> fallbackResId
         }
 
