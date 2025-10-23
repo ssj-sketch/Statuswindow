@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -52,29 +53,50 @@ class CardEventRepository private constructor(ctx: Context) {
 
     private fun load() {
         val json = prefs.getString("events", "[]") ?: "[]"
-        val arr = JSONArray(json)
-        val list = mutableListOf<CardEvent>()
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            val e = CardEvent(
-                id = o.getString("id"),
-                time = o.getString("time"),
-                merchant = o.getString("merchant"),
-                amount = o.getLong("amount"),
-                sourceApp = o.getString("sourceApp"),
-                raw = o.optString("raw", ""),
-                cardBrand = o.optStringOrNull("cardBrand"),
-                cardLast4 = o.optStringOrNull("cardLast4"),
-                installmentMonths = o.optIntOrNull("installmentMonths"),
-                category = o.optStringOrNull("category"),
-                cumulativeAmount = o.optLongOrNull("cumulativeAmount"),
-                holderMasked = o.optStringOrNull("holderMasked")
-            )
-            list.add(e)
-            keys.add(normalizedKey(e))
-        }
-        list.sortByDescending { it.time }
-        _events.value = list
+        val parsed = mutableListOf<CardEvent>()
+        keys.clear()
+
+        runCatching { JSONArray(json) }
+            .onFailure { err ->
+                Timber.w(err, "CardEventRepository: stored data corrupted, clearing cache")
+                prefs.edit().remove("events").apply()
+            }
+            .onSuccess { arr ->
+                for (i in 0 until arr.length()) {
+                    val obj = arr.optJSONObject(i) ?: continue
+                    val id = obj.optString("id").ifBlank { java.util.UUID.randomUUID().toString() }
+                    val time = obj.optString("time")
+                    val merchant = obj.optString("merchant")
+                    val amount = obj.optLongOrNull("amount") ?: continue
+                    val sourceApp = obj.optString("sourceApp").ifBlank { "unknown" }
+
+                    if (time.isBlank() || merchant.isBlank()) {
+                        Timber.w("CardEventRepository: skip malformed entry at %d", i)
+                        continue
+                    }
+
+                    val entry = CardEvent(
+                        id = id,
+                        time = time,
+                        merchant = merchant,
+                        amount = amount,
+                        sourceApp = sourceApp,
+                        raw = obj.optString("raw", ""),
+                        cardBrand = obj.optStringOrNull("cardBrand"),
+                        cardLast4 = obj.optStringOrNull("cardLast4"),
+                        installmentMonths = obj.optIntOrNull("installmentMonths"),
+                        category = obj.optStringOrNull("category"),
+                        cumulativeAmount = obj.optLongOrNull("cumulativeAmount"),
+                        holderMasked = obj.optStringOrNull("holderMasked")
+                    )
+
+                    parsed.add(entry)
+                    keys.add(normalizedKey(entry))
+                }
+            }
+
+        parsed.sortByDescending { it.time }
+        _events.value = parsed
     }
 
     private fun save() {
