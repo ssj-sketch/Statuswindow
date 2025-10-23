@@ -103,6 +103,15 @@ die () {
     exit 1
 } >&2
 
+if [ -n "$STATUSWINDOW_USE_BUNDLED_GRADLE" ]; then
+    BUNDLED_GRADLE="$APP_HOME/gradle-8.9/bin/gradle"
+    if [ -x "$BUNDLED_GRADLE" ]; then
+        exec "$BUNDLED_GRADLE" "$@"
+    else
+        die "STATUSWINDOW_USE_BUNDLED_GRADLE is set but $BUNDLED_GRADLE is not executable."
+    fi
+fi
+
 # OS specific support (must be 'true' or 'false').
 cygwin=false
 msys=false
