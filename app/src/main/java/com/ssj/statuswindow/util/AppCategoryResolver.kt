@@ -9,6 +9,8 @@ import com.ssj.statuswindow.R
 /**
  * 알림을 보낸 앱의 카테고리를 로컬라이즈된 문자열로 변환합니다.
  * API 26 이전에는 카테고리 메타데이터가 제공되지 않으므로 항상 "기타" 라벨을 반환합니다.
+ * Resolves user-facing labels for notification posting apps. The platform only started exposing
+ * category metadata in API 26, so older devices always fall back to the generic "other" label.
  */
 object AppCategoryResolver {
 
@@ -22,17 +24,37 @@ object AppCategoryResolver {
         ApplicationInfo.CATEGORY_PRODUCTIVITY to R.string.category_app_productivity,
         ApplicationInfo.CATEGORY_SOCIAL to R.string.category_app_social,
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video,
+        ApplicationInfo.CATEGORY_OTHER to R.string.category_app_other,
         ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
     )
 
     fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
         val info = applicationInfo ?: return context.getString(R.string.category_app_unknown)
 
+        ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video
+    )
+
+    /**
+     * Translates the category of the app that sent the notification into a localized string.
+     * Before API 26, category metadata is not available, so it always returns the "Other" label.
+     */
+    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
+        // If applicationInfo is null, return an "unknown" label.
+        if (applicationInfo == null) {
+            return context.getString(R.string.category_app_unknown)
+        }
+
+        // For Android versions before Oreo (API 26), app categories are not available.
+        // Fall back to a generic "other" category.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return context.getString(R.string.category_app_other)
         }
 
         val labelResId = categoryLabelResIds[info.category] ?: R.string.category_app_other
+        // Get the category from ApplicationInfo and find the corresponding string resource ID.
+        // If the category is not in our map, or is UNDEFINED, use the "other" label as a fallback.
+        val labelResId = categoryLabelResIds[applicationInfo.category] ?: R.string.category_app_other
+
         return context.getString(labelResId)
     }
 }
