@@ -12,6 +12,18 @@ import com.ssj.statuswindow.R
  */
 object AppCategoryResolver {
 
+    @SuppressLint("InlinedApi")
+    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
+        val unknownLabel = context.getString(R.string.category_app_unknown)
+        val fallbackLabelResId = R.string.category_app_other
+
+        val info = applicationInfo ?: return unknownLabel
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return context.getString(fallbackLabelResId)
+        }
+
+        val labelResId = when (info.category) {
     private val categoryLabelResIds: Map<Int, Int> = mapOf(
 import androidx.core.content.pm.ApplicationInfoCompat
 import com.ssj.statuswindow.R
@@ -104,6 +116,11 @@ object AppCategoryResolver {
             ApplicationInfo.CATEGORY_PRODUCTIVITY -> R.string.category_app_productivity
             ApplicationInfo.CATEGORY_SOCIAL -> R.string.category_app_social
             ApplicationInfo.CATEGORY_VIDEO -> R.string.category_app_video
+            ApplicationInfo.CATEGORY_UNDEFINED -> fallbackLabelResId
+            else -> fallbackLabelResId
+        }
+
+        return context.getString(labelResId)
             ApplicationInfo.CATEGORY_UNDEFINED,
             ApplicationInfo.CATEGORY_OTHER -> fallbackResId
             else -> fallbackResId
