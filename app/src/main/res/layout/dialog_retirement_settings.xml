@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🏦 은퇴설정"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_text_color"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- 생년월일 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@android:drawable/ic_menu_my_calendar"
+        app:hintTextColor="@color/primary_color">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etBirthDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="생년월일 (예: 1989-01)"
+            android:inputType="text"
+            android:text="1989-01"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 국민연금 가입개월수 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@android:drawable/ic_menu_month"
+        app:hintTextColor="@color/primary_color"
+        app:suffixText="개월">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPensionMonths"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="국민연금 가입개월수"
+            android:inputType="number"
+            android:text="420"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 희망은퇴나이 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@android:drawable/ic_menu_agenda"
+        app:hintTextColor="@color/primary_color"
+        app:suffixText="세">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etRetirementAge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="희망은퇴나이"
+            android:inputType="number"
+            android:text="60"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 월 실수령액 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:startIconDrawable="@android:drawable/ic_menu_edit"
+        app:hintTextColor="@color/primary_color"
+        app:suffixText="원">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNetMonthlyIncome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="월 실수령액 (세후)"
+            android:inputType="number"
+            android:text="3000000"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 계산 결과 미리보기 -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📊 계산 결과 미리보기"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_text_color"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvCalculationPreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="기준소득월액: 3,333,333원\n예상연금수령액: 1,500,000원/월"
+                android:textSize="12sp"
+                android:textColor="@color/secondary_text_color"
+                android:lineSpacingExtra="2dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 버튼들 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCalculate"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="계산"
+            android:textSize="14sp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="저장"
+            android:textSize="14sp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

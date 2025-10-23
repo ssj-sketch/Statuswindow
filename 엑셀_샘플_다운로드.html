@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StatusWindow 엑셀 내보내기 샘플</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        .download-section {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        .download-btn:hover {
+            background-color: #229954;
+        }
+        .info-box {
+            background-color: #d5f4e6;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 StatusWindow 엑셀 내보내기 샘플</h1>
+        
+        <div class="info-box">
+            <strong>💡 사용 방법:</strong> 아래 테이블을 복사하여 엑셀에 붙여넣거나, CSV 파일을 다운로드하여 엑셀에서 열어보세요.
+        </div>
+
+        <h2>1. 거래내역 샘플 (card_transactions.csv)</h2>
+        <div class="download-section">
+            <a href="sample_card_transactions.csv" class="download-btn" download>📥 거래내역 CSV 다운로드</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>날짜</th>
+                    <th>시간</th>
+                    <th>카드사</th>
+                    <th>카드번호</th>
+                    <th>거래유형</th>
+                    <th>사용자</th>
+                    <th>금액</th>
+                    <th>할부</th>
+                    <th>가맹점</th>
+                    <th>누적금액</th>
+                    <th>카테고리</th>
+                    <th>메모</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>2024-01-15</td><td>14:30</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+12,700</td><td>일시불</td><td>스타벅스 강남점</td><td>12,700</td><td>카페</td><td></td></tr>
+                <tr><td>2024-01-15</td><td>12:15</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+45,000</td><td>일시불</td><td>이마트 과천점</td><td>57,700</td><td>마트</td><td></td></tr>
+                <tr><td>2024-01-15</td><td>10:30</td><td>신한카드</td><td>1234</td><td>취소</td><td>본인</td><td style="color: red; font-weight: bold;">-5,000</td><td>일시불</td><td>스타벅스 강남점</td><td>52,700</td><td>카페</td><td></td></tr>
+                <tr><td>2024-01-14</td><td>19:45</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+25,000</td><td>일시불</td><td>맥도날드 홍대점</td><td>77,700</td><td>식당</td><td></td></tr>
+                <tr><td>2024-01-14</td><td>16:20</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+15,000</td><td>일시불</td><td>GS25 강남역점</td><td>92,700</td><td>편의점</td><td></td></tr>
+                <tr><td>2024-01-13</td><td>20:30</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+80,000</td><td>일시불</td><td>롯데마트 잠실점</td><td>172,700</td><td>마트</td><td></td></tr>
+                <tr><td>2024-01-13</td><td>11:00</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+12,000</td><td>일시불</td><td>투썸플레이스 신촌점</td><td>184,700</td><td>카페</td><td></td></tr>
+                <tr><td>2024-01-12</td><td>18:15</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+35,000</td><td>일시불</td><td>교보문고 강남점</td><td>219,700</td><td>서점</td><td></td></tr>
+                <tr><td>2024-01-12</td><td>14:00</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+22,000</td><td>일시불</td><td>올리브영 명동점</td><td>241,700</td><td>화장품</td><td></td></tr>
+                <tr><td>2024-01-11</td><td>21:00</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+18,000</td><td>일시불</td><td>배달의민족</td><td>259,700</td><td>배달</td><td></td></tr>
+                <tr><td>2024-01-11</td><td>13:30</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+9,500</td><td>일시불</td><td>CU 신촌점</td><td>269,200</td><td>편의점</td><td></td></tr>
+                <tr><td>2024-01-10</td><td>15:20</td><td>신한카드</td><td>1234</td><td>승인</td><td>본인</td><td style="color: green; font-weight: bold;">+30,000</td><td>3개월</td><td>다이소 강남점</td><td>299,200</td><td>생활용품</td><td></td></tr>
+                <tr><td>2024-01-09</td><td>12:00</td><td>신한카드</td><td>1234</td><td>취소</td><td>본인</td><td style="color: red; font-weight: bold;">-8,000</td><td>일시불</td><td>맥도날드 홍대점</td><td>291,200</td><td>식당</td><td></td></tr>
+            </tbody>
+        </table>
+
+        <h2>2. 월별 요약 샘플 (monthly_summary.csv)</h2>
+        <div class="download-section">
+            <a href="sample_monthly_summary.csv" class="download-btn" download>📥 월별요약 CSV 다운로드</a>
+        </div>
+        
+        <h3>기본 요약 정보</h3>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>값</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>년도</td><td>2024</td></tr>
+                <tr><td>월</td><td>1</td></tr>
+                <tr><td>총 사용액</td><td>274,200원</td></tr>
+                <tr><td>거래 건수</td><td>10건</td></tr>
+                <tr><td>평균 거래액</td><td>27,420원</td></tr>
+            </tbody>
+        </table>
+
+        <h3>상위 가맹점</h3>
+        <table>
+            <thead>
+                <tr><th>가맹점명</th><th>사용액</th><th>거래건수</th><th>비율(%)</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>롯데마트 잠실점</td><td>80,000원</td><td>1건</td><td>29.18%</td></tr>
+                <tr><td>이마트 과천점</td><td>45,000원</td><td>1건</td><td>16.42%</td></tr>
+                <tr><td>교보문고 강남점</td><td>35,000원</td><td>1건</td><td>12.77%</td></tr>
+                <tr><td>맥도날드 홍대점</td><td>25,000원</td><td>1건</td><td>9.12%</td></tr>
+                <tr><td>올리브영 명동점</td><td>22,000원</td><td>1건</td><td>8.03%</td></tr>
+            </tbody>
+        </table>
+
+        <h2>3. 통합 리포트 샘플 (comprehensive_report.csv)</h2>
+        <div class="download-section">
+            <a href="sample_comprehensive_report.csv" class="download-btn" download>📥 통합리포트 CSV 다운로드</a>
+        </div>
+        
+        <h3>결제 예상액 (할부 반영)</h3>
+        <table>
+            <thead>
+                <tr><th>항목</th><th>값</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>승인 금액 합계</td><td style="color: green; font-weight: bold;">+312,200원</td></tr>
+                <tr><td>취소 금액 합계</td><td style="color: red; font-weight: bold;">-13,000원</td></tr>
+                <tr><td>실제 청구될 금액</td><td style="color: blue; font-weight: bold;">299,200원</td></tr>
+                <tr><td>예상 월 총액</td><td>350,000원</td></tr>
+                <tr><td>남은 일수</td><td>16일</td></tr>
+                <tr><td>일평균 소비액</td><td>27,420원</td></tr>
+                <tr><td>예상 추가 소비액</td><td>75,800원</td></tr>
+                <tr><td>신뢰도</td><td>85.00%</td></tr>
+            </tbody>
+        </table>
+
+        <div class="info-box">
+            <strong>📋 파일 사용 방법:</strong>
+            <ul>
+                <li>CSV 파일을 다운로드하여 Microsoft Excel, Google Sheets, LibreOffice Calc에서 열 수 있습니다</li>
+                <li>한글 데이터가 포함된 경우 UTF-8 인코딩으로 저장됩니다</li>
+                <li>엑셀에서 열 때 "텍스트 마법사"를 사용하여 올바른 인코딩을 선택하세요</li>
+                <li>필터, 차트, 피벗 테이블 등의 기능을 활용하여 데이터를 분석할 수 있습니다</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <strong>🔧 앱에서 내보내기:</strong>
+            <ol>
+                <li>StatusWindow 앱의 메인 화면에서 "엑셀로 내보내기" 버튼 클릭</li>
+                <li>원하는 내보내기 옵션 선택 (거래내역/월별요약/통합리포트)</li>
+                <li>파일이 Downloads/StatusWindow/ 폴더에 자동 저장됨</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

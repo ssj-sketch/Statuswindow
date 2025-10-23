@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.IncomeDetailActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:titleTextColor="?attr/colorOnPrimary"
+        app:navigationIcon="@android:drawable/ic_menu_revert"
+        app:navigationIconTint="?attr/colorOnPrimary"
+        android:elevation="4dp" />
+
+    <!-- 수입 요약 정보 -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💰 수입 현황"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_text_color"/>
+
+            <!-- 이번달 수입 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이번달 수입:"
+                    android:textSize="14sp"
+                    android:textColor="@color/secondary_text_color"/>
+
+                <TextView
+                    android:id="@+id/tvMonthlyIncomeTotal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="0원"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/income_color"/>
+
+                <TextView
+                    android:id="@+id/tvIncomeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0건"
+                    android:textSize="12sp"
+                    android:textColor="@color/secondary_text_color"/>
+
+            </LinearLayout>
+
+            <!-- 누적 수입 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="누적 수입:"
+                    android:textSize="14sp"
+                    android:textColor="@color/secondary_text_color"/>
+
+                <TextView
+                    android:id="@+id/tvTotalIncome"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="0원"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/income_color"/>
+
+                <TextView
+                    android:id="@+id/tvTotalIncomeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0건"
+                    android:textSize="12sp"
+                    android:textColor="@color/secondary_text_color"/>
+
+            </LinearLayout>
+
+            <!-- 급여/부업 구분 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="급여"
+                        android:textSize="12sp"
+                        android:textColor="@color/secondary_text_color"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:id="@+id/tvSalaryIncome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0원"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/income_color"
+                        android:gravity="center"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="부업"
+                        android:textSize="12sp"
+                        android:textColor="@color/secondary_text_color"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:id="@+id/tvSideJobIncome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0원"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/income_color"
+                        android:gravity="center"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 수입 내역 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewIncome"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        tools:listitem="@android:layout/simple_list_item_2" />
+
+</LinearLayout>
