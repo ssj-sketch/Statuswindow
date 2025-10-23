@@ -1,17 +1,22 @@
 package com.ssj.statuswindow.notification
 
+import android.app.Notification
+import android.content.pm.ApplicationInfo
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import com.ssj.statuswindow.model.CardEvent
 import com.ssj.statuswindow.repo.CardEventRepository
+import com.ssj.statuswindow.repo.NotificationLogRepository
+import com.ssj.statuswindow.model.AppNotificationLog
+import com.ssj.statuswindow.util.AppCategoryResolver
 import com.ssj.statuswindow.util.SmsParser
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 class StatusNotificationListener : NotificationListenerService() {
 
-    private val repo by lazy { CardEventRepository.instance(this) }
+    private val cardRepo by lazy { CardEventRepository.instance(this) }
+    private val notificationRepo by lazy { NotificationLogRepository.instance(this) }
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     override fun onListenerConnected() {
@@ -24,26 +29,76 @@ class StatusNotificationListener : NotificationListenerService() {
         val title = extras.getCharSequence("android.title")?.toString().orEmpty()
         val text = extras.getCharSequence("android.text")?.toString().orEmpty()
         val big = extras.getCharSequence("android.bigText")?.toString().orEmpty()
-        val body = listOf(title, text, big).joinToString("\n").trim()
+        val lines = extras.getCharSequenceArray("android.textLines")
+            ?.joinToString("\n") { it.toString() }
+            .orEmpty()
+        val body = sequenceOf(title, text, big, lines)
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .joinToString("\n")
 
-        // 고급 파서 시도
-        val parsed = SmsParser.parse(body).ifEmpty {
-            // 파싱 실패 시에도 한 건으로 저장하되 amount=0L로 Long 타입 유지
-            listOf(
-                CardEvent(
-                    id = UUID.randomUUID().toString(),
-                    time = LocalDateTime.now().format(fmt),
-                    merchant = if (title.isNotBlank()) title else sbn.packageName,
-                    amount = 0L,                       // ✅ Long 타입으로 변경
-                    sourceApp = sbn.packageName,
-                    raw = body
-                )
-            )
+        val postedAt = Instant.ofEpochMilli(sbn.postTime)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDateTime()
+
+        persistNotificationLog(sbn, body, postedAt)
+
+        // 고급 파서 시도 (실패 시 카드 이벤트에는 반영하지 않음)
+        val parsed = SmsParser.parse(body)
+
+        if (parsed.isNotEmpty()) {
+            // sourceApp 비어있으면 패키지명으로 보정
+            cardRepo.addAll(parsed.map {
+                if (it.sourceApp.isBlank()) it.copy(sourceApp = sbn.packageName) else it
+            })
         }
+    }
 
-        // sourceApp 비어있으면 패키지명으로 보정
-        repo.addAll(parsed.map {
-            if (it.sourceApp.isBlank()) it.copy(sourceApp = sbn.packageName) else it
-        })
+    private fun persistNotificationLog(
+        sbn: StatusBarNotification,
+        body: String,
+        postedAt: LocalDateTime
+    ) {
+        val pm = packageManager
+        val appInfo: ApplicationInfo? = try {
+            pm.getApplicationInfo(sbn.packageName, 0)
+        } catch (_: Exception) {
+            null
+        }
+        val appName = try {
+            if (appInfo != null) pm.getApplicationLabel(appInfo)?.toString().orEmpty()
+            else sbn.packageName
+        } catch (_: Exception) {
+            sbn.packageName
+        }
+        val category = AppCategoryResolver.resolve(this, appInfo)
+        val notificationCategory = sbn.notification.category ?: resolveLegacyCategory(sbn.notification)
+        val content = if (body.isBlank()) sbn.notification.tickerText?.toString().orEmpty() else body
+        val entry = AppNotificationLog(
+            id = buildNotificationId(sbn),
+            packageName = sbn.packageName,
+            appName = appName.ifBlank { sbn.packageName },
+            appCategory = category,
+            postedAtIso = postedAt.format(fmt),
+            postedAtEpochMillis = sbn.postTime,
+            notificationCategory = notificationCategory,
+            content = content
+        )
+        notificationRepo.add(entry)
+    }
+
+    private fun buildNotificationId(sbn: StatusBarNotification): String {
+        val tag = sbn.tag ?: ""
+        return listOf(sbn.packageName, tag, sbn.id.toString(), sbn.postTime.toString())
+            .joinToString(":")
+    }
+
+    private fun resolveLegacyCategory(notification: Notification): String? {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            notification.category
+        } else {
+            null
+        }
     }
 }
