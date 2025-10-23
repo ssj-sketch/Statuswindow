@@ -65,6 +65,11 @@ dependencies {
     implementation(libs.timber)
 
     // viewModels(), lifecycleScope 등 KTX 확장 (좌표는 Kotlin DSL 문법으로)
+    implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("androidx.fragment:fragment-ktx:1.8.3")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
     implementation("androidx.activity:activity-ktx:1.8.0") // 버전을 libs.versions.activityKtx.get() 등으로 통일하는 것을 권장합니다.
     implementation("androidx.fragment:fragment-ktx:1.6.2") // 버전을 libs.versions.fragmentKtx.get() 등으로 통일하는 것을 권장합니다.
     implementation(libs.kotlinx.coroutines.core)
