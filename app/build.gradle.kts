@@ -61,11 +61,14 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.material)
+    implementation(libs.androidx.recyclerview)
     implementation(libs.timber)
 
     // viewModels(), lifecycleScope 등 KTX 확장 (좌표는 Kotlin DSL 문법으로)
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.fragment:fragment-ktx:1.8.3")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(kotlin("test"))
 }
