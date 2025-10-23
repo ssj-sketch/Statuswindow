@@ -16,6 +16,11 @@ class NotificationLogRepository private constructor(ctx: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("notification_logs", Context.MODE_PRIVATE)
 
+class NotificationLogRepository private constructor(ctx: Context) {
+
+    private val prefs: SharedPreferences =
+        ctx.getSharedPreferences("notification_logs", Context.MODE_PRIVATE)
+
     private val _logs = MutableStateFlow<List<AppNotificationLog>>(emptyList())
     val logs: StateFlow<List<AppNotificationLog>> get() = _logs
 
@@ -85,6 +90,24 @@ class NotificationLogRepository private constructor(ctx: Context) {
 
         parsed.sortByDescending { it.postedAtEpochMillis }
         _logs.value = parsed.take(MAX_ENTRIES)
+        val arr = JSONArray(json)
+        val list = mutableListOf<AppNotificationLog>()
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            val entry = AppNotificationLog(
+                id = o.getString("id"),
+                packageName = o.getString("packageName"),
+                appName = o.optString("appName", o.getString("packageName")),
+                appCategory = o.optString("appCategory", "Uncategorized"),
+                postedAtIso = o.getString("postedAtIso"),
+                postedAtEpochMillis = o.optLong("postedAtEpochMillis", 0L),
+                notificationCategory = o.optStringOrNull("notificationCategory"),
+                content = o.optString("content", "")
+            )
+            list.add(entry)
+        }
+        list.sortByDescending { it.postedAtEpochMillis }
+        _logs.value = list.take(MAX_ENTRIES)
     }
 
     private fun save() {

@@ -58,7 +58,7 @@ dependencies {
     implementation(project(":core-common"))
 
     // 버전 카탈로그 사용 (중복 피하기)
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.ktx) // 이 한 줄만 남깁니다.
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.material)
     implementation(libs.androidx.recyclerview)
@@ -69,6 +69,12 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.3")
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation("androidx.activity:activity-ktx:1.8.0") // 버전을 libs.versions.activityKtx.get() 등으로 통일하는 것을 권장합니다.
+    implementation("androidx.fragment:fragment-ktx:1.6.2") // 버전을 libs.versions.fragmentKtx.get() 등으로 통일하는 것을 권장합니다.
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
 
     testImplementation(kotlin("test"))
 }
