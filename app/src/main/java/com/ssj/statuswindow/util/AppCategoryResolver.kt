@@ -24,14 +24,7 @@ object AppCategoryResolver {
         ApplicationInfo.CATEGORY_PRODUCTIVITY to R.string.category_app_productivity,
         ApplicationInfo.CATEGORY_SOCIAL to R.string.category_app_social,
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video,
-        ApplicationInfo.CATEGORY_OTHER to R.string.category_app_other,
         ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
-    )
-
-    fun resolve(context: Context, applicationInfo: ApplicationInfo?): String {
-        val info = applicationInfo ?: return context.getString(R.string.category_app_unknown)
-
-        ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video
     )
 
     /**
@@ -50,7 +43,6 @@ object AppCategoryResolver {
             return context.getString(R.string.category_app_other)
         }
 
-        val labelResId = categoryLabelResIds[info.category] ?: R.string.category_app_other
         // Get the category from ApplicationInfo and find the corresponding string resource ID.
         // If the category is not in our map, or is UNDEFINED, use the "other" label as a fallback.
         val labelResId = categoryLabelResIds[applicationInfo.category] ?: R.string.category_app_other

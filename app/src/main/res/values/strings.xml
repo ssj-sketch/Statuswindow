@@ -1,6 +1,31 @@
 <resources>
     <string name="app_name">StatusWindow</string>
 
+    <!-- RPG HUD 타이틀 -->
+    <string name="title_life_rpg_hud">현실을 플레이한다</string>
+    
+    <!-- 스탯 이름 -->
+    <string name="stat_wealth">재력</string>
+    <string name="stat_vital">체력</string>
+    <string name="stat_cognition">사고력</string>
+    <string name="stat_balance">균형</string>
+    
+    <!-- 섹션 타이틀 -->
+    <string name="title_buffs_debuffs">버프/디버프</string>
+    <string name="title_live_feed">라이브 피드</string>
+    <string name="title_coaching_suggestions">코칭 제안</string>
+    <string name="title_settings">설정</string>
+    
+    <!-- 버프/디버프 관련 -->
+    <string name="buff_active">활성 버프</string>
+    <string name="debuff_active">활성 디버프</string>
+    <string name="modifier_expires_in">%1$s 남음</string>
+    
+    <!-- 코칭 제안 관련 -->
+    <string name="suggestion_title_format">%1$s</string>
+    <string name="suggestion_option_format">• %1$s</string>
+    
+    <!-- 기존 문자열들 -->
     <string name="title_card_events">카드 내역</string>
     <string name="total_amount_default">총액: 0</string>
     <string name="total_amount_fmt">총액: %,d</string>

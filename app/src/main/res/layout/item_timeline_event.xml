@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvTimelineMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25분 집중 중 → 사고력 +4 버프 1시간"
+            android:textSize="14sp"
+            android:textColor="@color/primary_text_color"/>
+
+        <TextView
+            android:id="@+id/tvTimelineTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="2분 전"
+            android:textSize="12sp"
+            android:textColor="@color/secondary_text_color"/>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

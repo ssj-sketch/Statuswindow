@@ -1,3 +1,21 @@
 <resources>
     <color name="ic_launcher_background">#0A1B3A</color>
+    
+    <!-- RPG HUD 색상 -->
+    <color name="primary_color">#FF6200EE</color>
+    <color name="primary_text_color">#DE000000</color>
+    <color name="secondary_text_color">#99000000</color>
+    
+    <!-- 스탯별 색상 -->
+    <color name="wealth_color">#FF4CAF50</color>
+    <color name="vital_color">#FFF44336</color>
+    <color name="cognition_color">#FF2196F3</color>
+    <color name="balance_color">#FFFF9800</color>
+    
+    <!-- 진행바 색상 -->
+    <color name="progress_track_color">#1F000000</color>
+    
+    <!-- 버프/디버프 색상 -->
+    <color name="buff_color">#FF4CAF50</color>
+    <color name="debuff_color">#FFF44336</color>
 </resources>
