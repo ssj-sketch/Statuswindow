@@ -21,6 +21,8 @@ object AppCategoryResolver {
             ApplicationInfo.CATEGORY_PRODUCTIVITY -> context.getString(R.string.category_app_productivity)
             ApplicationInfo.CATEGORY_SOCIAL -> context.getString(R.string.category_app_social)
             ApplicationInfo.CATEGORY_VIDEO -> context.getString(R.string.category_app_video)
+            ApplicationInfo.CATEGORY_UNDEFINED -> context.getString(R.string.category_app_other)
+            else -> context.getString(R.string.category_app_other)
             ApplicationInfo.CATEGORY_UNDEFINED, ApplicationInfo.CATEGORY_OTHER ->
                 context.getString(R.string.category_app_other)
             else -> context.getString(R.string.category_app_other)
