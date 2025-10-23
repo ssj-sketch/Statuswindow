@@ -27,6 +27,7 @@ object AppCategoryResolver {
         ApplicationInfo.CATEGORY_PRODUCTIVITY to R.string.category_app_productivity,
         ApplicationInfo.CATEGORY_SOCIAL to R.string.category_app_social,
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video,
+        ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
         ApplicationInfo.CATEGORY_OTHER to R.string.category_app_other,
         ApplicationInfo.CATEGORY_UNDEFINED to R.string.category_app_other
         ApplicationInfo.CATEGORY_VIDEO to R.string.category_app_video
@@ -44,6 +45,14 @@ object AppCategoryResolver {
             return fallback
         }
 
+        val category = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            applicationInfo.category
+        } else {
+            ApplicationInfo.CATEGORY_UNDEFINED
+        }
+        val labelResId = categoryLabelResIds[category] ?: R.string.category_app_other
+
+        return context.getString(labelResId)
         val category = ApplicationInfoCompat.getCategory(applicationInfo)
         val labelResId = categoryLabelResIds[category] ?: R.string.category_app_other
 
