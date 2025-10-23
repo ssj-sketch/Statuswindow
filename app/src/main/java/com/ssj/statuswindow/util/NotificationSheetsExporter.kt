@@ -29,6 +29,9 @@ class NotificationSheetsExporter(
         }
         val sheetName = config.sheetName.ifBlank { NotificationExportPreferences.DEFAULT_SHEET_NAME }
         val data = repository.snapshot()
+        if (data.isEmpty()) {
+            return Result.success(0)
+        }
         return withContext(dispatcher) {
             try {
                 val payload = buildPayload(sheetName, data)

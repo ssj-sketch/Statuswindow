@@ -4,7 +4,6 @@ import android.app.Notification
 import android.content.pm.ApplicationInfo
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import com.ssj.statuswindow.model.CardEvent
 import com.ssj.statuswindow.repo.CardEventRepository
 import com.ssj.statuswindow.repo.NotificationLogRepository
 import com.ssj.statuswindow.model.AppNotificationLog
@@ -13,7 +12,6 @@ import com.ssj.statuswindow.util.SmsParser
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 class StatusNotificationListener : NotificationListenerService() {
 
@@ -46,25 +44,15 @@ class StatusNotificationListener : NotificationListenerService() {
 
         persistNotificationLog(sbn, body, postedAt)
 
-        // 고급 파서 시도
-        val parsed = SmsParser.parse(body).ifEmpty {
-            // 파싱 실패 시에도 한 건으로 저장하되 amount=0L로 Long 타입 유지
-            listOf(
-                CardEvent(
-                    id = UUID.randomUUID().toString(),
-                    time = postedAt.format(fmt),
-                    merchant = if (title.isNotBlank()) title else sbn.packageName,
-                    amount = 0L,                       // ✅ Long 타입으로 변경
-                    sourceApp = sbn.packageName,
-                    raw = body
-                )
-            )
-        }
+        // 고급 파서 시도 (실패 시 카드 이벤트에는 반영하지 않음)
+        val parsed = SmsParser.parse(body)
 
-        // sourceApp 비어있으면 패키지명으로 보정
-        cardRepo.addAll(parsed.map {
-            if (it.sourceApp.isBlank()) it.copy(sourceApp = sbn.packageName) else it
-        })
+        if (parsed.isNotEmpty()) {
+            // sourceApp 비어있으면 패키지명으로 보정
+            cardRepo.addAll(parsed.map {
+                if (it.sourceApp.isBlank()) it.copy(sourceApp = sbn.packageName) else it
+            })
+        }
     }
 
     private fun persistNotificationLog(

@@ -224,11 +224,19 @@ class MainActivity : AppCompatActivity() {
             snackbar.dismiss()
             result
                 .onSuccess { count ->
-                    Snackbar.make(
-                        binding.root,
-                        getString(R.string.msg_export_success, count),
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    if (count <= 0) {
+                        Snackbar.make(
+                            binding.root,
+                            R.string.msg_export_empty,
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Snackbar.make(
+                            binding.root,
+                            getString(R.string.msg_export_success, count),
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
                 }
                 .onFailure { t ->
                     val message = t.localizedMessage?.takeIf { it.isNotBlank() }
