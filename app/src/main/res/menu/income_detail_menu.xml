@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_refresh"
+        android:title="새로고침"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_export"
+        android:title="내보내기"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="설정"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_help"
+        android:title="도움말"
+        app:showAsAction="never" />
+
+</menu>
