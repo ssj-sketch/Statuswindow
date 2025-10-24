@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- アプリ基本情報 -->
+    <string name="app_name">StatusWindow</string>
+    <string name="app_description">オンデバイス退職管理通知分析アプリ</string>
+    
+    <!-- メインメニュー -->
+    <string name="menu_dashboard">ダッシュボード</string>
+    <string name="menu_timeline">通知タイムライン</string>
+    <string name="menu_card_events">カード取引履歴</string>
+    <string name="menu_income_detail">収入詳細</string>
+    <string name="menu_asset_management">資産管理</string>
+    <string name="menu_settings">設定</string>
+    
+    <!-- ダッシュボード -->
+    <string name="dashboard_title">ダッシュボード</string>
+    <string name="retirement_asset_title">💰 退職時総資産</string>
+    <string name="monthly_spending">今月の支出</string>
+    <string name="monthly_income">今月の収入</string>
+    <string name="recent_transactions">最近の取引</string>
+    <string name="category_analysis">カテゴリ別支出分析</string>
+    
+    <!-- アニメーションメッセージ -->
+    <string name="spending_event_title">💸 支出発生！</string>
+    <string name="spending_event_message">退職資産が減少しました</string>
+    <string name="retirement_age_impact">今回の支出により退職可能年齢が</string>
+    <string name="retirement_age_delayed">遅れました</string>
+    <string name="retirement_age_advanced">早まりました</string>
+    
+    <!-- タイムライン -->
+    <string name="timeline_title">通知タイムライン</string>
+    <string name="timeline_search_hint">通知内容を検索...</string>
+    <string name="timeline_filter_all">すべて</string>
+    <string name="timeline_filter_success">成功</string>
+    <string name="timeline_filter_partial">部分成功</string>
+    <string name="timeline_filter_failed">失敗</string>
+    <string name="timeline_filter_duplicate">重複</string>
+    <string name="timeline_filter_ignored">無視</string>
+    
+    <!-- 処理状態 -->
+    <string name="status_success">成功</string>
+    <string name="status_partial_success">部分成功</string>
+    <string name="status_failed">失敗</string>
+    <string name="status_duplicate">重複</string>
+    <string name="status_ignored">無視</string>
+    
+    <!-- 信頼度 -->
+    <string name="confidence_score">信頼度</string>
+    <string name="extracted_data">抽出データ</string>
+    <string name="no_extracted_data">抽出データなし</string>
+    <string name="error_message">エラー</string>
+    
+    <!-- オンライン更新 -->
+    <string name="online_update_title">オンライン更新設定</string>
+    <string name="online_update_enable">オンライン更新</string>
+    <string name="online_update_description">公示地価、株価、為替レートなどの最新データ自動更新</string>
+    <string name="update_types_title">更新するデータ</string>
+    <string name="update_real_estate">公示地価</string>
+    <string name="update_stocks">株価</string>
+    <string name="update_exchange_rates">為替レート</string>
+    <string name="update_frequency_title">更新頻度</string>
+    <string name="update_hourly">1時間ごと</string>
+    <string name="update_daily">1日ごと</string>
+    <string name="update_weekly">1週間ごと</string>
+    <string name="update_manual">手動更新のみ</string>
+    <string name="network_settings_title">ネットワーク設定</string>
+    <string name="wifi_only">Wi-Fiでのみ更新</string>
+    <string name="battery_optimized">バッテリー最適化</string>
+    <string name="manual_update_title">手動更新</string>
+    <string name="manual_update_button">今すぐ更新</string>
+    <string name="manual_update_progress">更新中...</string>
+    <string name="cache_status_title">キャッシュ状態</string>
+    <string name="last_update_time">最終更新</string>
+    <string name="cache_expired">期限切れ</string>
+    <string name="cache_valid">有効</string>
+    
+    <!-- プライバシー保護 -->
+    <string name="privacy_title">🔒 プライバシー保護</string>
+    <string name="privacy_description">• すべてのデータはローカルのみに保存されます\n• 個人取引履歴は外部に送信されません\n• 公開データ（株価、為替レートなど）のみ更新されます</string>
+    
+    <!-- 言語設定 -->
+    <string name="language_settings_title">言語設定</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_english">English</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_french">Français</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_russian">Русский</string>
+    
+    <!-- 国設定 -->
+    <string name="country_settings_title">国設定</string>
+    <string name="country_korea">대한민국</string>
+    <string name="country_usa">United States</string>
+    <string name="country_japan">日本</string>
+    <string name="country_china">中国</string>
+    <string name="country_spain">España</string>
+    <string name="country_france">France</string>
+    <string name="country_germany">Deutschland</string>
+    <string name="country_italy">Italia</string>
+    <string name="country_brazil">Brasil</string>
+    <string name="country_russia">Россия</string>
+    
+    <!-- アクセシビリティ -->
+    <string name="accessibility_title">アクセシビリティ設定</string>
+    <string name="high_contrast">ハイコントラストモード</string>
+    <string name="reduce_animation">アニメーション軽減</string>
+    <string name="large_font">大きなフォント</string>
+    <string name="color_blind_mode">色覚障害モード</string>
+    <string name="motion_sensitivity">モーション感度</string>
+    
+    <!-- カテゴリ -->
+    <string name="category_food">食費</string>
+    <string name="category_transport">交通費</string>
+    <string name="category_shopping">買い物</string>
+    <string name="category_entertainment">娯楽</string>
+    <string name="category_healthcare">医療費</string>
+    <string name="category_education">教育費</string>
+    <string name="category_housing">住宅費</string>
+    <string name="category_utilities">光熱費</string>
+    
+    <!-- ボタン -->
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">キャンセル</string>
+    <string name="button_save">保存</string>
+    <string name="button_delete">削除</string>
+    <string name="button_edit">編集</string>
+    <string name="button_back">戻る</string>
+    <string name="button_next">次へ</string>
+    <string name="button_previous">前へ</string>
+    <string name="button_refresh">更新</string>
+    <string name="button_export">エクスポート</string>
+    <string name="button_import">インポート</string>
+    
+    <!-- エラーメッセージ -->
+    <string name="error_network">ネットワーク接続を確認してください</string>
+    <string name="error_permission">権限が必要です</string>
+    <string name="error_data_not_found">データが見つかりません</string>
+    <string name="error_invalid_input">無効な入力です</string>
+    <string name="error_unknown">不明なエラーが発生しました</string>
+    
+    <!-- 成功メッセージ -->
+    <string name="success_saved">保存されました</string>
+    <string name="success_updated">更新されました</string>
+    <string name="success_deleted">削除されました</string>
+    <string name="success_exported">エクスポートが完了しました</string>
+</resources>

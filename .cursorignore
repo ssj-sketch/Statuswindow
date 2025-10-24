@@ -1,0 +1,45 @@
+
+# Build artifacts
+/build/
+/app/build/
+/gradle/
+/.gradle/
+/captures/
+/out/
+
+# IDE
+/.idea/
+*.iml
+/local.properties
+
+# Binaries
+*.apk
+*.aab
+*.so
+*.jar
+*.aar
+
+# Keys / Secrets
+*.jks
+*.keystore
+*.keystore.properties
+*.pem
+*.p12
+*.der
+*.crt
+*.key
+
+# Logs & temp
+*.log
+/tmp/
+/.gen/
+/.venv/
+/node_modules/
+
+# Test data & recordings
+/app/src/testdata/
+/app/src/androidTest/assets/recordings/
+
+# Misc
+.DS_Store
+Thumbs.db

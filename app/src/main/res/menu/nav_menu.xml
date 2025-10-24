@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="대시보드" />
+
+        <item
+            android:id="@+id/nav_card_details"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="카드 사용내역" />
+
+        <item
+            android:id="@+id/nav_bank_transaction"
+            android:icon="@android:drawable/ic_menu_send"
+            android:title="입출금내역" />
+
+        <item
+            android:id="@+id/nav_card_table"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="카드 테이블" />
+
+        <item
+            android:id="@+id/nav_category_analysis"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="카테고리 분석" />
+
+        <item
+            android:id="@+id/nav_monthly_report"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="월별 리포트" />
+
+    </group>
+
+    <item android:title="설정">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@android:drawable/ic_menu_preferences"
+                android:title="설정" />
+            
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@android:drawable/ic_menu_info_details"
+                android:title="앱 정보" />
+        </menu>
+    </item>
+
+</menu>

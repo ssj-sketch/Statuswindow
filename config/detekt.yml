@@ -1,0 +1,17 @@
+build:
+  maxIssues: 5
+
+style:
+  MagicNumber:
+    active: true
+  WildcardImport:
+    active: true
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '^[a-z][A-Za-z0-9]*$'
+
+complexity:
+  LongMethod:
+    threshold: 60

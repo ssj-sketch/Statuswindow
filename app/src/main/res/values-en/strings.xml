@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Basic Info -->
+    <string name="app_name">StatusWindow</string>
+    <string name="app_description">On-device Retirement Management Notification Analysis App</string>
+    
+    <!-- Main Menu -->
+    <string name="menu_dashboard">Dashboard</string>
+    <string name="menu_timeline">Notification Timeline</string>
+    <string name="menu_card_events">Card Transactions</string>
+    <string name="menu_income_detail">Income Details</string>
+    <string name="menu_asset_management">Asset Management</string>
+    <string name="menu_settings">Settings</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="retirement_asset_title">💰 Total Retirement Assets</string>
+    <string name="monthly_spending">This Month\'s Spending</string>
+    <string name="monthly_income">This Month\'s Income</string>
+    <string name="recent_transactions">Recent Transactions</string>
+    <string name="category_analysis">Spending Analysis by Category</string>
+    
+    <!-- Animation Messages -->
+    <string name="spending_event_title">💸 Spending Detected!</string>
+    <string name="spending_event_message">Retirement assets have decreased</string>
+    <string name="retirement_age_impact">This spending has delayed retirement by</string>
+    <string name="retirement_age_delayed">days</string>
+    <string name="retirement_age_advanced">days earlier</string>
+    
+    <!-- Timeline -->
+    <string name="timeline_title">Notification Timeline</string>
+    <string name="timeline_search_hint">Search notifications...</string>
+    <string name="timeline_filter_all">All</string>
+    <string name="timeline_filter_success">Success</string>
+    <string name="timeline_filter_partial">Partial Success</string>
+    <string name="timeline_filter_failed">Failed</string>
+    <string name="timeline_filter_duplicate">Duplicate</string>
+    <string name="timeline_filter_ignored">Ignored</string>
+    
+    <!-- Processing Status -->
+    <string name="status_success">Success</string>
+    <string name="status_partial_success">Partial Success</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_duplicate">Duplicate</string>
+    <string name="status_ignored">Ignored</string>
+    
+    <!-- Confidence -->
+    <string name="confidence_score">Confidence</string>
+    <string name="extracted_data">Extracted Data</string>
+    <string name="no_extracted_data">No extracted data</string>
+    <string name="error_message">Error</string>
+    
+    <!-- Online Update -->
+    <string name="online_update_title">Online Update Settings</string>
+    <string name="online_update_enable">Online Update</string>
+    <string name="online_update_description">Automatic update of latest data including real estate prices, stock prices, and exchange rates</string>
+    <string name="update_types_title">Data to Update</string>
+    <string name="update_real_estate">Real Estate Prices</string>
+    <string name="update_stocks">Stock Prices</string>
+    <string name="update_exchange_rates">Exchange Rates</string>
+    <string name="update_frequency_title">Update Frequency</string>
+    <string name="update_hourly">Every Hour</string>
+    <string name="update_daily">Daily</string>
+    <string name="update_weekly">Weekly</string>
+    <string name="update_manual">Manual Only</string>
+    <string name="network_settings_title">Network Settings</string>
+    <string name="wifi_only">Update on Wi-Fi Only</string>
+    <string name="battery_optimized">Battery Optimization</string>
+    <string name="manual_update_title">Manual Update</string>
+    <string name="manual_update_button">Update Now</string>
+    <string name="manual_update_progress">Updating...</string>
+    <string name="cache_status_title">Cache Status</string>
+    <string name="last_update_time">Last Update</string>
+    <string name="cache_expired">Expired</string>
+    <string name="cache_valid">Valid</string>
+    
+    <!-- Privacy -->
+    <string name="privacy_title">🔒 Privacy Protection</string>
+    <string name="privacy_description">• All data is stored locally only\n• Personal transaction history is not transmitted externally\n• Only public data (stock prices, exchange rates, etc.) is updated</string>
+    
+    <!-- Language Settings -->
+    <string name="language_settings_title">Language Settings</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_english">English</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_french">Français</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_russian">Русский</string>
+    
+    <!-- Country Settings -->
+    <string name="country_settings_title">Country Settings</string>
+    <string name="country_korea">대한민국</string>
+    <string name="country_usa">United States</string>
+    <string name="country_japan">日本</string>
+    <string name="country_china">中国</string>
+    <string name="country_spain">España</string>
+    <string name="country_france">France</string>
+    <string name="country_germany">Deutschland</string>
+    <string name="country_italy">Italia</string>
+    <string name="country_brazil">Brasil</string>
+    <string name="country_russia">Россия</string>
+    
+    <!-- Accessibility -->
+    <string name="accessibility_title">Accessibility Settings</string>
+    <string name="high_contrast">High Contrast Mode</string>
+    <string name="reduce_animation">Reduce Animation</string>
+    <string name="large_font">Large Font</string>
+    <string name="color_blind_mode">Color Blind Mode</string>
+    <string name="motion_sensitivity">Motion Sensitivity</string>
+    
+    <!-- Categories -->
+    <string name="category_food">Food</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_healthcare">Healthcare</string>
+    <string name="category_education">Education</string>
+    <string name="category_housing">Housing</string>
+    <string name="category_utilities">Utilities</string>
+    
+    <!-- Buttons -->
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_save">Save</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_back">Back</string>
+    <string name="button_next">Next</string>
+    <string name="button_previous">Previous</string>
+    <string name="button_refresh">Refresh</string>
+    <string name="button_export">Export</string>
+    <string name="button_import">Import</string>
+    
+    <!-- Error Messages -->
+    <string name="error_network">Please check your network connection</string>
+    <string name="error_permission">Permission required</string>
+    <string name="error_data_not_found">Data not found</string>
+    <string name="error_invalid_input">Invalid input</string>
+    <string name="error_unknown">An unknown error occurred</string>
+    
+    <!-- Success Messages -->
+    <string name="success_saved">Saved</string>
+    <string name="success_updated">Updated</string>
+    <string name="success_deleted">Deleted</string>
+    <string name="success_exported">Export completed</string>
+</resources>
