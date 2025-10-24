@@ -8,8 +8,10 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -24,6 +26,7 @@ import com.ssj.statuswindow.model.KoreanStock
 import com.ssj.statuswindow.model.RealEstate
 import com.ssj.statuswindow.model.StockPortfolio
 import com.ssj.statuswindow.repo.AssetRepository
+import com.ssj.statuswindow.repo.database.SmsDataRepository
 import com.ssj.statuswindow.service.KoreanStockService
 import com.ssj.statuswindow.service.RealEstateService
 import com.ssj.statuswindow.ui.adapter.BankBalanceAdapter
@@ -40,6 +43,7 @@ class AssetManagementActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityAssetManagementBinding
     private val assetRepo = AssetRepository.getInstance()
+    private lateinit var smsDataRepository: SmsDataRepository
     private val scope = CoroutineScope(Dispatchers.Main)
     private val nf = NumberFormat.getIntegerInstance(Locale.KOREA)
     
@@ -52,6 +56,9 @@ class AssetManagementActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAssetManagementBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        // Repository 초기화
+        smsDataRepository = SmsDataRepository(this)
         
         setupToolbar()
         setupTabs()
@@ -121,13 +128,43 @@ class AssetManagementActivity : AppCompatActivity() {
     }
     
     private fun observeData() {
-        scope.launch {
-            assetRepo.bankBalances.collect { bankBalances ->
-                bankBalanceAdapter.submitList(bankBalances)
-                updateTotalAssetValue()
+        lifecycleScope.launch {
+            try {
+                // Room 데이터베이스에서 은행 잔고 조회
+                val bankBalances = smsDataRepository.getBankBalances()
+                
+                bankBalances.collect { entities ->
+                    // BankBalanceEntity를 BankBalance로 변환
+                    val bankBalanceList = entities.map { entity ->
+                        BankBalance(
+                            id = entity.id,
+                            bankName = entity.bankName,
+                            accountNumber = entity.accountNumber,
+                            balance = entity.balance,
+                            accountType = "입출금", // 기본값
+                            lastUpdated = entity.updatedAt,
+                            memo = ""
+                        )
+                    }
+                    
+                    bankBalanceAdapter.submitList(bankBalanceList)
+                    updateTotalAssetValue()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AssetManagementActivity", "은행 잔고 조회 오류: ${e.message}", e)
+                Toast.makeText(this@AssetManagementActivity, "은행 잔고 조회 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                
+                // 오류 발생 시 기존 방식으로 폴백
+                scope.launch {
+                    assetRepo.bankBalances.collect { bankBalances ->
+                        bankBalanceAdapter.submitList(bankBalances)
+                        updateTotalAssetValue()
+                    }
+                }
             }
         }
         
+        // 부동산과 주식은 기존 방식 유지 (Room 데이터베이스에 해당 테이블이 없음)
         scope.launch {
             assetRepo.realEstates.collect { realEstates ->
                 realEstateAdapter.submitList(realEstates)

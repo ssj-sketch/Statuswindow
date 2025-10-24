@@ -3,14 +3,17 @@ package com.ssj.statuswindow.ui
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.ssj.statuswindow.R
 import com.ssj.statuswindow.databinding.ActivityCardEventBinding
 import com.ssj.statuswindow.model.CardTransaction
 import com.ssj.statuswindow.repo.CardEventRepository
+import com.ssj.statuswindow.repo.database.SmsDataRepository
 import com.ssj.statuswindow.ui.adapter.CardTransactionAdapter
 import com.ssj.statuswindow.viewmodel.MainViewModel
 import com.ssj.statuswindow.viewmodel.MainViewModelFactory
@@ -23,6 +26,7 @@ class CardEventActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCardEventBinding
     private val cardTransactionAdapter = CardTransactionAdapter()
     private val scope = MainScope()
+    private lateinit var smsDataRepository: SmsDataRepository
     
     private val vm: MainViewModel by viewModels {
         MainViewModelFactory(CardEventRepository.instance(this))
@@ -32,6 +36,9 @@ class CardEventActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCardEventBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Repository 초기화
+        smsDataRepository = SmsDataRepository(this)
 
         setupToolbar()
         setupRecyclerView()
@@ -65,10 +72,42 @@ class CardEventActivity : AppCompatActivity() {
     }
     
     private fun observeTransactions() {
-        scope.launch {
-            vm.transactions.collectLatest { transactions ->
-                cardTransactionAdapter.submitList(transactions)
-                updateMonthlyTotal(transactions)
+        lifecycleScope.launch {
+            try {
+                // Room 데이터베이스에서 카드 거래 내역 조회
+                val cardTransactions = smsDataRepository.getCardTransactions()
+                
+                cardTransactions.collect { transactions ->
+                    // CardTransactionEntity를 CardTransaction으로 변환
+                    val cardTransactionList = transactions.map { entity ->
+                        CardTransaction(
+                            cardType = entity.cardType,
+                            cardNumber = entity.cardNumber,
+                            transactionType = "승인", // 기본값
+                            user = entity.user,
+                            amount = entity.amount,
+                            installment = entity.installment,
+                            transactionDate = entity.transactionDate,
+                            merchant = entity.merchant,
+                            cumulativeAmount = entity.cumulativeAmount,
+                            originalText = entity.originalText
+                        )
+                    }
+                    
+                    cardTransactionAdapter.submitList(cardTransactionList)
+                    updateMonthlyTotal(cardTransactionList)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CardEventActivity", "카드 거래 내역 조회 오류: ${e.message}", e)
+                Toast.makeText(this@CardEventActivity, "카드 거래 내역 조회 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                
+                // 오류 발생 시 기존 방식으로 폴백
+                scope.launch {
+                    vm.transactions.collectLatest { transactions ->
+                        cardTransactionAdapter.submitList(transactions)
+                        updateMonthlyTotal(transactions)
+                    }
+                }
             }
         }
     }

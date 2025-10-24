@@ -17,6 +17,10 @@
             android:id="@+id/nav_notification_log"
             android:icon="@android:drawable/ic_menu_recent_history"
             android:title="@string/menu_notification_log" />
+        <item
+            android:id="@+id/nav_sms_data_test"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="SMS 데이터 테스트" />
     </group>
     <item
         android:id="@+id/nav_export_sheets"

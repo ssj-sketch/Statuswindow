@@ -26,6 +26,7 @@ import com.ssj.statuswindow.repo.CardEventRepository
 import com.ssj.statuswindow.repo.IncomeRepository
 import com.ssj.statuswindow.model.IncomeInfo
 import com.ssj.statuswindow.repo.NotificationLogRepository
+import com.ssj.statuswindow.repo.database.SmsDataRepository
 import com.ssj.statuswindow.util.NotificationExportPreferences
 import com.ssj.statuswindow.util.NotificationSheetsExporter
 import com.ssj.statuswindow.util.SettingsPreferences
@@ -74,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     private val excelExportService by lazy { ExcelExportService(this) }
     private val retirementService = RetirementCalculationService
     private val incomeRepo by lazy { IncomeRepository(this) }
+    private val smsDataRepository by lazy { SmsDataRepository(this) }
     private val assetRepo = AssetRepository.getInstance()
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val nf = NumberFormat.getIntegerInstance(Locale.KOREA)
@@ -147,6 +149,11 @@ class MainActivity : AppCompatActivity() {
                     openNotificationLog()
                     true
                 }
+                R.id.nav_sms_data_test -> {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    startActivity(Intent(this, SmsDataTestActivity::class.java))
+                    true
+                }
                 R.id.nav_export_sheets -> {
                     binding.drawerLayout.closeDrawer(GravityCompat.START)
                     showExportDialog()
@@ -213,9 +220,16 @@ class MainActivity : AppCompatActivity() {
         
         // 수집 목록 구독 (기존 기능 유지)
         scope.launch {
-            vm.events.collect { list ->
-                val total = list.sumOf { it.amount }
-                // 기존 총액 표시는 숨기고 HUD에 통합
+            try {
+                vm.events.collect { list ->
+                    val total = list.sumOf { it.amount }
+                    // 기존 총액 표시는 숨기고 HUD에 통합
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                android.util.Log.d("MainActivity", "이벤트 수집 코루틴 취소됨")
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "이벤트 수집 오류: ${e.message}", e)
             }
         }
         
@@ -254,19 +268,49 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateMonthlyIncome() {
-        val monthlyIncome = incomeRepo.getCurrentMonthIncome()
-        val currentText = binding.tvMonthlyIncome.text.toString()
-        val newText = "${String.format("%,d", monthlyIncome)}원"
-        
-        // 애니메이션으로 금액 변경
-        if (currentText != newText) {
-            animateIncomeChange(currentText, newText)
-        } else {
-            binding.tvMonthlyIncome.text = newText
+        scope.launch {
+            try {
+                // Room 데이터베이스에서 현재 월 수입 조회
+                val incomeTransactions = smsDataRepository.getIncomeTransactions()
+                
+                incomeTransactions.collect { transactions ->
+                    val currentDate = java.time.LocalDate.now()
+                    val monthlyIncome = transactions.filter { entity ->
+                        entity.transactionDate.year == currentDate.year &&
+                        entity.transactionDate.monthValue == currentDate.monthValue
+                    }.sumOf { it.amount }
+                    
+                    val currentText = binding.tvMonthlyIncome.text.toString()
+                    val newText = "${String.format("%,d", monthlyIncome)}원"
+                    
+                    // 애니메이션으로 금액 변경
+                    if (currentText != newText) {
+                        animateIncomeChange(currentText, newText)
+                    } else {
+                        binding.tvMonthlyIncome.text = newText
+                    }
+                    
+                    // 수입이 변경되면 은퇴자산도 재계산
+                    updateRetirementPlan()
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // 코루틴이 취소된 경우 - 정상적인 상황이므로 로그만 남기고 종료
+                android.util.Log.d("MainActivity", "수입 정보 업데이트 코루틴 취소됨")
+                throw e // CancellationException은 다시 던져야 함
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "수입 정보 업데이트 오류: ${e.message}", e)
+                // 오류 발생 시 기존 방식으로 폴백
+                val monthlyIncome = incomeRepo.getCurrentMonthIncome()
+                val currentText = binding.tvMonthlyIncome.text.toString()
+                val newText = "${String.format("%,d", monthlyIncome)}원"
+                
+                if (currentText != newText) {
+                    animateIncomeChange(currentText, newText)
+                } else {
+                    binding.tvMonthlyIncome.text = newText
+                }
+            }
         }
-        
-        // 수입이 변경되면 은퇴자산도 재계산
-        updateRetirementPlan()
     }
     
     private fun animateIncomeChange(oldText: String, newText: String) {
@@ -320,7 +364,12 @@ class MainActivity : AppCompatActivity() {
             val currentAge = 35
             val retirementAge = 60
             val currentSalary = detectedSalary?.amount ?: 3000000L // 기본 급여 300만원
-            val monthlyIncome = incomeRepo.getCurrentMonthIncome()
+            val monthlyIncome = try {
+                incomeRepo.getCurrentMonthIncome()
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "월 수입 조회 오류", e)
+                0L
+            }
             val monthlyExpense = getCurrentMonthlyExpense()
             
             // 동적 은퇴자산 계산
@@ -415,8 +464,10 @@ class MainActivity : AppCompatActivity() {
             val currentMonth = java.time.LocalDate.now()
             
             val monthlyTransactions = transactions.filter { transaction ->
-                transaction.transactionDate.year == currentMonth.year &&
-                transaction.transactionDate.monthValue == currentMonth.monthValue
+                transaction.transactionDate?.let { date ->
+                    date.year == currentMonth.year &&
+                    date.monthValue == currentMonth.monthValue
+                } ?: false
             }
             
             monthlyTransactions.sumOf { it.amount }
@@ -1031,7 +1082,12 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             try {
                 // 현재 월 수입 및 지출 계산
-                val currentMonthIncome = incomeRepo.getCurrentMonthIncome()
+                val currentMonthIncome = try {
+                    incomeRepo.getCurrentMonthIncome()
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "월 수입 조회 오류", e)
+                    0L
+                }
                 val currentMonthExpense = vm.events.value.sumOf { it.amount }
                 val currentAssets = assetRepo.getTotalAssetValue()
                 

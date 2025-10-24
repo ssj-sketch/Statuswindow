@@ -10,7 +10,7 @@ data class IncomeInfo(
     val amount: Long,
     val source: String, // 급여, 부업, 투자수익 등
     val bankName: String,
-    val transactionDate: LocalDateTime,
+    val transactionDate: LocalDateTime?, // nullable로 변경
     val description: String = "",
     val isRecurring: Boolean = false // 정기 수입 여부
 )

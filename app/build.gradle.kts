@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    id("com.google.devtools.ksp") version "1.9.24-1.0.20"
 }
 
 android {
@@ -77,6 +78,11 @@ dependencies {
 
     // JSON 직렬화를 위한 Gson
     implementation("com.google.code.gson:gson:2.10.1")
+    
+    // Room 데이터베이스
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
 
     testImplementation(kotlin("test"))
