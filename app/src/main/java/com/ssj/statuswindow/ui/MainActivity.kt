@@ -1,541 +1,726 @@
 package com.ssj.statuswindow.ui
 
-import android.animation.ValueAnimator
-import android.content.Intent
-import android.content.res.Configuration
-import android.os.Bundle
-import android.provider.Settings
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.widget.EditText
-import android.widget.TextView
-import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
+import androidx.appcompat.widget.Toolbar
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.navigation.NavigationView
 import com.ssj.statuswindow.R
-import com.ssj.statuswindow.databinding.ActivityMainBinding
+import com.ssj.statuswindow.util.SmsParser
 import com.ssj.statuswindow.model.CardTransaction
-import com.ssj.statuswindow.util.SmsParser as CardSmsParser
-import com.ssj.statuswindow.ui.CardEventActivity
-import com.ssj.statuswindow.repo.CardEventRepository
-import com.ssj.statuswindow.repo.IncomeRepository
-import com.ssj.statuswindow.model.IncomeInfo
-import com.ssj.statuswindow.repo.NotificationLogRepository
-import com.ssj.statuswindow.repo.database.SmsDataRepository
-import com.ssj.statuswindow.util.NotificationExportPreferences
-import com.ssj.statuswindow.util.NotificationSheetsExporter
-import com.ssj.statuswindow.util.SettingsPreferences
-import com.ssj.statuswindow.util.SheetsShareConfig
-import com.ssj.statuswindow.util.ExcelPreviewDialog
-import com.ssj.statuswindow.util.NotificationHistoryPermissionManager
-import com.ssj.statuswindow.viewmodel.MainViewModel
-import com.ssj.statuswindow.viewmodel.MainViewModelFactory
-import com.ssj.statuswindow.service.MonthlySummaryService
-import com.ssj.statuswindow.service.ExcelExportService
-import com.ssj.statuswindow.model.MonthlyCardSummary
-import com.ssj.statuswindow.service.RetirementCalculationService
-import com.ssj.statuswindow.util.FinancialNotificationAnalyzer
-import com.ssj.statuswindow.model.RetirementPlan
-import com.ssj.statuswindow.model.SalaryInfo
-import com.ssj.statuswindow.model.AutoTransferInfo
-import com.ssj.statuswindow.model.DynamicRetirementAsset
-import com.ssj.statuswindow.repo.AssetRepository
-import com.ssj.statuswindow.model.RetirementSettings
-import com.ssj.statuswindow.model.RetirementAssetEstimate
-import com.ssj.statuswindow.model.RefinedPensionCalculationResult
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import java.time.LocalDate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancel
+import com.ssj.statuswindow.database.StatusWindowDatabase
+import com.ssj.statuswindow.database.entity.CardTransactionEntity
+import com.ssj.statuswindow.database.entity.CreditCardUsageEntity
+import com.ssj.statuswindow.service.MerchantCategoryAiService
 import java.text.NumberFormat
-import java.time.Instant
-import java.util.Locale
-import android.text.TextWatcher
-import android.text.Editable
+import java.util.*
+import kotlinx.coroutines.*
 
+/**
+ * StatusWindow - 점진적 기능 복원 버전
+ */
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var drawerToggle: ActionBarDrawerToggle
-    private val vm: MainViewModel by viewModels {
-        MainViewModelFactory(CardEventRepository.instance(this))
-    }
-    private val notificationRepo by lazy { NotificationLogRepository.instance(this) }
-    private val exportPrefs by lazy { NotificationExportPreferences(this) }
-    private val sheetsExporter by lazy { NotificationSheetsExporter(notificationRepo) }
-    private val monthlySummaryService by lazy { MonthlySummaryService() }
-    private val excelExportService by lazy { ExcelExportService(this) }
-    private val retirementService = RetirementCalculationService
-    private val incomeRepo by lazy { IncomeRepository(this) }
-    private val smsDataRepository by lazy { SmsDataRepository(this) }
-    private val assetRepo = AssetRepository.getInstance()
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val nf = NumberFormat.getIntegerInstance(Locale.KOREA)
     
-    // 은퇴설정 (기본값)
-    private var retirementSettings = RetirementSettings(
-        birthDate = LocalDate.of(1989, 1, 1),
-        pensionSubscriptionMonths = 420, // 30세부터 현재까지 가정
-        desiredRetirementAge = 60
-    )
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var toolbar: Toolbar
+    private lateinit var navigationView: NavigationView
+    private lateinit var btnTestSms: Button
+    private lateinit var btnInputSms: Button
+    private lateinit var btnShowCreditCardTable: Button
+    private lateinit var btnViewDetails: Button
+    private lateinit var btnViewIncomeDetails: Button
+    private lateinit var tvMonthlySpending: TextView
+    private lateinit var tvMonthlyIncome: TextView
+    private lateinit var tvIncomeChange: TextView
+    private lateinit var tvIncomeChangePercent: TextView
+    private lateinit var progressSpending: ProgressBar
+    private lateinit var tvProgressPercent: TextView
+    private lateinit var tvSummary: TextView
     
-    // 카드 거래 내역 저장소
-    private val cardTransactions = mutableListOf<CardTransaction>()
-    
-    // 설정 관리
-    private lateinit var settingsPreferences: SettingsPreferences
-    
-    // 은퇴 계획 관련 변수
-    private var currentRetirementPlan: RetirementPlan? = null
-    private var detectedSalary: SalaryInfo? = null
-    private var autoTransfers = mutableListOf<AutoTransferInfo>()
+    private val transactions = mutableListOf<CardTransaction>()
+    private lateinit var database: StatusWindowDatabase
+    private lateinit var categoryAiService: MerchantCategoryAiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         try {
-            // CrashLogger.saveLog(this, "INFO", "MainActivity", "onCreate started")
+            setContentView(R.layout.activity_main)
             
-            binding = ActivityMainBinding.inflate(layoutInflater)
-            setContentView(binding.root)
+            // 데이터베이스 초기화
+            database = StatusWindowDatabase.getDatabase(this)
             
-            // CrashLogger.saveLog(this, "INFO", "MainActivity", "UI binding completed")
+            // 카테고리 AI 서비스 초기화
+            categoryAiService = MerchantCategoryAiService(this)
+            
+            // 앱 시작 시 기존 데이터 초기화 (선택사항)
+            // clearAllData()
+            
+            setupViews()
+            setupToolbar()
+            setupNavigation()
+            setupClickListeners()
+            
+            // 앱 시작 시 기존 데이터로 대시보드 초기화
+            loadDashboardData()
+            
         } catch (e: Exception) {
-            // CrashLogger.saveCrashLog(this, e, "MainActivity.onCreate() - Initial setup failed")
-            throw e
+            e.printStackTrace()
+            // 폴백: 간단한 TextView
+            val textView = TextView(this)
+            textView.text = "오류 발생: ${e.message}"
+            setContentView(textView)
         }
-
-        // Toolbar + drawer
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = getString(R.string.title_life_rpg_hud)
-
-        drawerToggle = ActionBarDrawerToggle(
-            this,
-            binding.drawerLayout,
-            binding.toolbar,
-            R.string.nav_drawer_open,
-            R.string.nav_drawer_close
-        )
-        binding.drawerLayout.addDrawerListener(drawerToggle)
-        drawerToggle.syncState()
-        binding.navigationView.setCheckedItem(R.id.nav_card_events)
-        binding.navigationView.setNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_card_events -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    startActivity(Intent(this, CardEventActivity::class.java))
+    }
+    
+    private fun setupViews() {
+        drawerLayout = findViewById(R.id.drawerLayout)
+        toolbar = findViewById(R.id.toolbar)
+        navigationView = findViewById(R.id.navigationView)
+        btnTestSms = findViewById(R.id.btnTestSms)
+        btnInputSms = findViewById(R.id.btnInputSms)
+        btnShowCreditCardTable = findViewById(R.id.btnShowCreditCardTable)
+        btnViewDetails = findViewById(R.id.btnViewDetails)
+        btnViewIncomeDetails = findViewById(R.id.btnViewIncomeDetails)
+        tvMonthlySpending = findViewById(R.id.tvMonthlySpending)
+        tvMonthlyIncome = findViewById(R.id.tvMonthlyIncome)
+        tvIncomeChange = findViewById(R.id.tvIncomeChange)
+        tvIncomeChangePercent = findViewById(R.id.tvIncomeChangePercent)
+        progressSpending = findViewById(R.id.progressSpending)
+        tvProgressPercent = findViewById(R.id.tvProgressPercent)
+        tvSummary = findViewById(R.id.tvSummary)
+    }
+    
+    private fun setupToolbar() {
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
+    }
+    
+    private fun setupNavigation() {
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_dashboard -> {
+                    // 현재 페이지
+                    drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_income_detail -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    startActivity(Intent(this, IncomeDetailActivity::class.java))
+                R.id.nav_card_details -> {
+                    // 카드 상세페이지로 이동
+                    startActivity(Intent(this, CardDetailsActivity::class.java))
+                    drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_asset_management -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    startActivity(Intent(this, AssetManagementActivity::class.java))
+                R.id.nav_bank_transaction -> {
+                    // 입출금내역 페이지로 이동
+                    startActivity(Intent(this, BankTransactionActivity::class.java))
+                    drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_notification_log -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    openNotificationLog()
+                R.id.nav_card_table -> {
+                    showCreditCardTable()
+                    drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_sms_data_test -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    startActivity(Intent(this, SmsDataTestActivity::class.java))
+                R.id.nav_category_analysis -> {
+                    // 카테고리 분석 페이지로 이동
+                    drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_export_sheets -> {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                    showExportDialog()
+                R.id.nav_monthly_report -> {
+                    // 월별 리포트 페이지로 이동
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                R.id.nav_settings -> {
+                    // 설정 페이지로 이동
+                    drawerLayout.closeDrawers()
+                    true
+                }
+                R.id.nav_about -> {
+                    // 앱 정보 페이지로 이동
+                    drawerLayout.closeDrawers()
                     true
                 }
                 else -> false
             }
         }
-
-        // RecyclerView 설정
+    }
+    
+    private fun setupClickListeners() {
+        btnTestSms.setOnClickListener {
+            testSmsParsing()
+        }
+        
+        btnInputSms.setOnClickListener {
+            showSmsInputDialog()
+        }
+        
+        btnShowCreditCardTable.setOnClickListener {
+            showCreditCardTable()
+        }
+        
+        btnViewDetails.setOnClickListener {
+            startActivity(Intent(this, CardDetailsActivity::class.java))
+        }
+        
+        btnViewIncomeDetails.setOnClickListener {
+            // 소득 상세보기 페이지로 이동
+            startActivity(Intent(this, IncomeDetailsActivity::class.java))
+        }
+    }
+    
+    private fun testSmsParsing() {
         try {
-            setupRecyclerViews()
+            // 샘플테스트 전에 기존 데이터 확인
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val cardTransactionDao = database.cardTransactionDao()
+                    val existingCount = cardTransactionDao.getCardTransactionCount()
+                    
+                    withContext(Dispatchers.Main) {
+                        if (existingCount > 0) {
+                            // 기존 데이터가 있으면 사용자에게 확인
+                            showTestDataConfirmationDialog()
+                        } else {
+                            // 기존 데이터가 없으면 바로 테스트 실행
+                            executeTestSmsParsing()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        executeTestSmsParsing()
+                    }
+                }
+            }
+            
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "setupRecyclerViews 오류", e)
-            // 기본값으로 설정
-            binding.tvMonthlyTotal.text = "0원"
-            binding.tvMonthlyCount.text = "0건"
-            binding.tvMonthlyIncome.text = "0원"
+            e.printStackTrace()
+            updateSummary("❌ 오류 발생: ${e.message}")
         }
-
-        // 설정 초기화
-        initializeSettings()
-        
-        // SMS 파서 초기화 (국가별 AI 엔진 설정)
-        try {
-            CardSmsParser.initialize(this)
-        } catch (e: Exception) {
-            // SMS 파서 초기화 실패 시 기본값 사용
-            android.util.Log.e("MainActivity", "SMS Parser initialization failed", e)
-        }
-
-        // FAB: 붙여넣기 입력 → 파싱 → 저장
-        binding.fabAdd.setOnClickListener { showPasteDialog() }
-
-        // 알림 접근 상태 표시 & 설정 화면 이동
-        binding.btnOpenNotificationAccess.setOnClickListener { openNotificationAccessSettings() }
-        
-        // 설정 버튼 클릭
-        binding.btnSettings.setOnClickListener { openSettings() }
-        updateNotificationAccessIndicator()
-        
-        // 수입 상세보기 링크
-        binding.tvIncomeDetailLink.setOnClickListener {
-            startActivity(Intent(this, IncomeDetailActivity::class.java))
-        }
-        
-                // 상세보기 버튼 클릭 이벤트
-                binding.btnViewDetails.setOnClickListener {
-                    startActivity(Intent(this, CardEventActivity::class.java))
-                }
-
-                // 엑셀 내보내기 버튼 클릭 이벤트
-                binding.btnExportExcel.setOnClickListener {
-                    showExportExcelDialog()
-                }
-
-                // 은퇴설정 버튼 클릭 이벤트
-                binding.btnRetirementSettings.setOnClickListener {
-                    showRetirementSettingsDialog()
-                }
-
-        // HUD 초기화 및 업데이트 (임시 비활성화)
-        // initializeHUD()
-        
-        // 수집 목록 구독 (기존 기능 유지)
-        scope.launch {
+    }
+    
+    private fun showTestDataConfirmationDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("샘플 테스트 데이터")
+            .setMessage("기존 데이터가 있습니다.\n\n샘플 테스트를 실행하시겠습니까?\n\n- 기존 데이터 유지: 중복 검사 후 추가\n- 기존 데이터 삭제: 모든 데이터 초기화 후 테스트")
+            .setPositiveButton("기존 데이터 유지") { _, _ ->
+                executeTestSmsParsing()
+            }
+            .setNeutralButton("기존 데이터 삭제") { _, _ ->
+                clearAllDataAndTest()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+    
+    private fun clearAllDataAndTest() {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                vm.events.collect { list ->
-                    val total = list.sumOf { it.amount }
-                    // 기존 총액 표시는 숨기고 HUD에 통합
+                // 모든 데이터 삭제
+                database.cardTransactionDao().deleteAllCardTransactions()
+                database.creditCardUsageDao().deleteAllCreditCardUsage()
+                database.bankTransactionDao().deleteAllBankTransactions()
+                
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(this@MainActivity, "기존 데이터가 삭제되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    executeTestSmsParsing()
                 }
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                android.util.Log.d("MainActivity", "이벤트 수집 코루틴 취소됨")
-                throw e
+                
             } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "이벤트 수집 오류: ${e.message}", e)
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(this@MainActivity, "데이터 삭제 오류: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
-        
-        // 은퇴설정 UI 초기화
-        updateRetirementSettingsUI()
-        
-        // 은퇴자산 추정 초기화
-        updateRetirementAssetEstimate()
-    }
-
-    private fun setupRecyclerViews() {
-        updateMonthlyTotal()
-        updateMonthlyIncome()
     }
     
-    private fun updateMonthlyTotal() {
-        val currentMonth = java.time.LocalDate.now().monthValue
-        val currentYear = java.time.LocalDate.now().year
-
-        val monthlyTransactions = cardTransactions.filter { transaction ->
-            transaction.transactionDate.monthValue == currentMonth &&
-            transaction.transactionDate.year == currentYear
+    private fun executeTestSmsParsing() {
+        try {
+            // 수정된 실제 SMS 샘플 데이터들 (할부 거래 포함)
+            val testSmsList = listOf(
+                "신한카드(1054)승인 신*진 42,820원(일시불)10/22 14:59 주식회사 이마트 누적1,903,674",
+                "신한카드(1054)승인 신*진 98,700원(2개월)10/22 15:48 카톨릭대병원 누적1,960,854원",
+                "신한카드(1054)취소 신*진 12,700원(일시불)10/22 15:48 스타벅스 누적1,860,854원",
+                "신한카드(1054)승인 신*진 12,700원(일시불)10/22 15:48 스타벅스 누적1,860,854원",
+                "신한카드(1054)승인 신*진 42,820원(일시불)10/21 14:59 주식회사 이마트 누적1,903,674",
+                "신한카드(1054)승인 신*진 98,700원(3개월)10/21 15:48 카톨릭대병원 누적1,960,854원",
+                "신한카드(1054)승인 신*진 12,700원(일시불)10/21 15:48 스타벅스 누적1,860,854원",
+                "신한 10/11 21:54 100-***-159993 입금  2,500,000 잔액  3,700,000 급여",
+                "신한 10/11 21:54 100-***-159993 출금  3,500,000 잔액  1,200,000 신한카드",
+                "신한 09/11 21:54 100-***-159993 입금  2,500,000 잔액  5,000,000 신승진",
+                "신한 08/11 21:54 100-***-159993 입금  2,500,000 잔액  2,500,000 급여"
+            )
+            
+            parseSmsData(testSmsList.joinToString("\n"))
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            updateSummary("❌ 오류 발생: ${e.message}")
         }
-
-        val totalAmount = monthlyTransactions.sumOf { it.amount }
-        val transactionCount = monthlyTransactions.size
-
-        binding.tvMonthlyTotal.text = "${String.format("%,d", totalAmount)}원"
-        binding.tvMonthlyCount.text = "${transactionCount}건"
-        
-        // 결제 예상액 계산 및 표시
-        updatePaymentForecast(monthlyTransactions)
-        
-        // 소비가 변경되면 은퇴자산도 재계산
-        updateRetirementPlan()
     }
     
-    private fun updateMonthlyIncome() {
-        scope.launch {
+    private fun showSmsInputDialog() {
+        val dialog = SmsInputDialog(this) { smsText ->
+            parseSmsData(smsText)
+        }
+        dialog.show()
+    }
+    
+    private fun parseSmsData(smsText: String) {
+        try {
+            // SMS 파싱
+            val parsedTransactions = SmsParser.parseSmsText(smsText, 0)
+            
+            // 기존 데이터 초기화
+            transactions.clear()
+            transactions.addAll(parsedTransactions)
+            
+                    // 어댑터 업데이트 (제거됨 - 상세페이지로 이동)
+            
+            // 소득 정보도 파싱
+            val parsedIncome = SmsParser.parseIncomeFromSms(smsText)
+            
+            // 요약 정보 업데이트
+            updateSummary(parsedTransactions, parsedIncome)
+            
+            // Room DB에 저장
+            saveTransactionsToDatabase(parsedTransactions, parsedIncome)
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            updateSummary("❌ 파싱 오류: ${e.message}")
+        }
+    }
+    
+    private fun saveTransactionsToDatabase(transactions: List<CardTransaction>, incomeTransactions: List<com.ssj.statuswindow.database.entity.BankTransactionEntity>) {
+        // 메모리 누수 방지를 위해 lifecycleScope 사용
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Room 데이터베이스에서 현재 월 수입 조회
-                val incomeTransactions = smsDataRepository.getIncomeTransactions()
+                val cardTransactionDao = database.cardTransactionDao()
+                val creditCardUsageDao = database.creditCardUsageDao()
                 
-                incomeTransactions.collect { transactions ->
-                    val currentDate = java.time.LocalDate.now()
-                    val monthlyIncome = transactions.filter { entity ->
-                        entity.transactionDate.year == currentDate.year &&
-                        entity.transactionDate.monthValue == currentDate.monthValue
-                    }.sumOf { it.amount }
+                // 기존 CardTransactionEntity 저장 (간단한 중복 검사)
+                val cardEntities = transactions.filter { transaction ->
+                    // 간단한 중복 검사 - 원본 텍스트 기준
+                    val existingCount = cardTransactionDao.getCardTransactionCountByOriginalText(transaction.originalText)
+                    val isDuplicate = existingCount > 0
                     
-                    val currentText = binding.tvMonthlyIncome.text.toString()
-                    val newText = "${String.format("%,d", monthlyIncome)}원"
-                    
-                    // 애니메이션으로 금액 변경
-                    if (currentText != newText) {
-                        animateIncomeChange(currentText, newText)
+                    if (isDuplicate) {
+                        Log.d("MainActivity", "🚫 중복 거래 차단: ${transaction.merchant} - ${transaction.amount}원 (${transaction.transactionType})")
                     } else {
-                        binding.tvMonthlyIncome.text = newText
+                        Log.d("MainActivity", "✅ 신규 거래 추가: ${transaction.merchant} - ${transaction.amount}원 (${transaction.transactionType})")
                     }
                     
-                    // 수입이 변경되면 은퇴자산도 재계산
-                    updateRetirementPlan()
+                    !isDuplicate
+                }.map { transaction ->
+                    CardTransactionEntity(
+                        id = 0, // Room이 자동 생성
+                        cardType = transaction.cardType,
+                        cardNumber = transaction.cardNumber,
+                        transactionType = transaction.transactionType,
+                        user = transaction.user,
+                        amount = transaction.amount,
+                        installment = transaction.installment,
+                        transactionDate = transaction.transactionDate,
+                        merchant = transaction.merchant,
+                        cumulativeAmount = transaction.cumulativeAmount,
+                        category = transaction.category,
+                        memo = transaction.memo,
+                        originalText = transaction.originalText
+                    )
                 }
-            } catch (e: kotlinx.coroutines.CancellationException) {
-                // 코루틴이 취소된 경우 - 정상적인 상황이므로 로그만 남기고 종료
-                android.util.Log.d("MainActivity", "수입 정보 업데이트 코루틴 취소됨")
-                throw e // CancellationException은 다시 던져야 함
-            } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "수입 정보 업데이트 오류: ${e.message}", e)
-                // 오류 발생 시 기존 방식으로 폴백
-                val monthlyIncome = incomeRepo.getCurrentMonthIncome()
-                val currentText = binding.tvMonthlyIncome.text.toString()
-                val newText = "${String.format("%,d", monthlyIncome)}원"
                 
-                if (currentText != newText) {
-                    animateIncomeChange(currentText, newText)
-                } else {
-                    binding.tvMonthlyIncome.text = newText
+                // 신용카드 사용내역만 별도 테이블에 저장 (간단한 중복 검사)
+                val creditCardEntities = transactions.filter { it.cardType.contains("카드") }.filter { transaction ->
+                    // 신용카드 테이블에서도 중복 검사 - 원본 텍스트 기준
+                    val existingCount = creditCardUsageDao.getCreditCardUsageCountByOriginalText(transaction.originalText)
+                    val isDuplicate = existingCount > 0
+                    
+                    if (isDuplicate) {
+                        Log.d("MainActivity", "🚫 신용카드 테이블 중복 차단: ${transaction.merchant} - ${transaction.amount}원")
+                    } else {
+                        Log.d("MainActivity", "✅ 신용카드 테이블 신규 추가: ${transaction.merchant} - ${transaction.amount}원")
+                    }
+                    
+                    !isDuplicate
+                }.map { transaction ->
+                    val installmentMonths = when {
+                        transaction.installment == "일시불" -> 1
+                        transaction.installment.contains("개월") -> {
+                            transaction.installment.replace("개월", "").toIntOrNull() ?: 1
+                        }
+                        else -> 1
+                    }
+                    
+                    val monthlyPayment = when {
+                        transaction.transactionType == "취소" -> -transaction.amount
+                        transaction.installment == "일시불" -> transaction.amount
+                        else -> transaction.amount / installmentMonths
+                    }
+                    
+                    // AI로 카테고리 추론 (한국어 기본)
+                    val inferredCategory = categoryAiService.inferCategory(transaction.merchant, "ko")
+                    
+                    // 청구년월 계산 (거래일 기준)
+                    val billingYear = transaction.transactionDate.year
+                    val billingMonth = transaction.transactionDate.monthValue
+                    
+                    CreditCardUsageEntity(
+                        id = 0, // Room이 자동 생성
+                        cardType = transaction.cardType,
+                        cardNumber = transaction.cardNumber,
+                        cardName = "${transaction.cardType}${transaction.cardNumber}",
+                        transactionType = transaction.transactionType,
+                        amount = transaction.amount,
+                        installment = transaction.installment,
+                        installmentMonths = installmentMonths,
+                        monthlyPayment = monthlyPayment,
+                        transactionDate = transaction.transactionDate,
+                        merchant = transaction.merchant,
+                        merchantCategory = inferredCategory, // AI 추론된 카테고리
+                        billingYear = billingYear, // 청구년도
+                        billingMonth = billingMonth, // 청구월
+                        billingAmount = monthlyPayment, // 해당월 청구금액
+                        cumulativeAmount = transaction.cumulativeAmount,
+                        monthlyBillAmount = monthlyPayment,
+                        user = transaction.user,
+                        originalText = transaction.originalText
+                    )
                 }
-            }
-        }
-    }
-    
-    private fun animateIncomeChange(oldText: String, newText: String) {
-        // 숫자 추출
-        val oldAmount = oldText.replace("[^0-9]".toRegex(), "").toLongOrNull() ?: 0L
-        val newAmount = newText.replace("[^0-9]".toRegex(), "").toLongOrNull() ?: 0L
-        
-        if (oldAmount != newAmount) {
-            val animator = android.animation.ValueAnimator.ofInt(oldAmount.toInt(), newAmount.toInt())
-            animator.duration = 1000 // 1초 애니메이션
-            animator.addUpdateListener { animation ->
-                val animatedValue = animation.animatedValue as Int
-                binding.tvMonthlyIncome.text = "${String.format("%,d", animatedValue)}원"
-            }
-            
-            // 애니메이션 시작 시 색상 변경
-            binding.tvMonthlyIncome.setTextColor(getColor(R.color.income_color))
-            animator.start()
-            
-            // 애니메이션 완료 후 원래 색상으로 복원
-            animator.addListener(object : android.animation.AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: android.animation.Animator) {
-                    binding.tvMonthlyIncome.setTextColor(getColor(R.color.income_color))
+                
+                // 소득 데이터도 저장 (간단한 중복 검사)
+                val bankTransactionDao = database.bankTransactionDao()
+                val filteredIncomeTransactions = incomeTransactions.filter { incomeTransaction ->
+                    // 소득 데이터 중복 검사 - 원본 텍스트 기준
+                    val existingCount = bankTransactionDao.getBankTransactionCountByOriginalText(incomeTransaction.originalText)
+                    val isDuplicate = existingCount > 0
+                    
+                    if (isDuplicate) {
+                        Log.d("MainActivity", "🚫 소득 데이터 중복 차단: ${incomeTransaction.description} - ${incomeTransaction.amount}원")
+                    } else {
+                        Log.d("MainActivity", "✅ 소득 데이터 신규 추가: ${incomeTransaction.description} - ${incomeTransaction.amount}원")
+                    }
+                    
+                    !isDuplicate
                 }
-            })
-        } else {
-            binding.tvMonthlyIncome.text = newText
-        }
-    }
-    
-    /**
-     * 결제 예상액 업데이트
-     */
-    private fun updatePaymentForecast(monthlyTransactions: List<CardTransaction>) {
-        val forecast = monthlySummaryService.calculatePaymentForecast(monthlyTransactions)
-        
-        binding.tvEstimatedTotal.text = "${String.format("%,d", forecast.actualBillingAmount)}원"
-        
-        val forecastInfo = "승인: +${String.format("%,d", forecast.approvedAmount)}원 | " +
-                         "취소: -${String.format("%,d", forecast.cancelledAmount)}원 | " +
-                         "실제청구: ${String.format("%,d", forecast.actualBillingAmount)}원"
-        binding.tvForecastInfo.text = forecastInfo
-    }
-    
-    /**
-     * 은퇴 계획 계산 및 업데이트
-     */
-    private fun updateRetirementPlan() {
-        try {
-            // 기본값으로 계산 (설정에서 가져올 예정)
-            val currentAge = 35
-            val retirementAge = 60
-            val currentSalary = detectedSalary?.amount ?: 3000000L // 기본 급여 300만원
-            val monthlyIncome = try {
-                incomeRepo.getCurrentMonthIncome()
+                
+                bankTransactionDao.insertBankTransactionList(filteredIncomeTransactions)
+                
+                // DB에 저장
+                cardTransactionDao.insertCardTransactions(cardEntities)
+                creditCardUsageDao.insertCreditCardUsageList(creditCardEntities)
+                
+                // 메인 스레드에서 성공 메시지 표시
+                withContext(Dispatchers.Main) {
+                    val currentSummary = tvSummary.text.toString()
+                    val duplicateCount = transactions.size - cardEntities.size
+                    val duplicateIncomeCount = incomeTransactions.size - filteredIncomeTransactions.size
+                    
+                    val message = if (duplicateCount > 0 || duplicateIncomeCount > 0) {
+                        "💾 DB 저장 완료: ${cardEntities.size}건 (카드: ${creditCardEntities.size}건, 소득: ${filteredIncomeTransactions.size}건)\n🚫 중복 차단: 카드 ${duplicateCount}건, 소득 ${duplicateIncomeCount}건"
+                    } else {
+                        "💾 DB 저장 완료: ${cardEntities.size}건 (카드: ${creditCardEntities.size}건, 소득: ${filteredIncomeTransactions.size}건)"
+                    }
+                    
+                    tvSummary.text = "$currentSummary\n\n$message"
+                }
+                
             } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "월 수입 조회 오류", e)
-                0L
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    val currentSummary = tvSummary.text.toString()
+                    tvSummary.text = "$currentSummary\n\n❌ DB 저장 실패: ${e.message}"
+                }
             }
-            val monthlyExpense = getCurrentMonthlyExpense()
-            
-            // 동적 은퇴자산 계산
-            val dynamicAsset = retirementService.calculateDynamicRetirementAsset(
-                currentAge = currentAge,
-                retirementAge = retirementAge,
-                currentSalary = currentSalary,
-                monthlyIncome = monthlyIncome,
-                monthlySpending = monthlyExpense,
-                currentAsset = 0L // 현재 자산은 0으로 가정
-            )
-            
-            // 기존 RetirementPlan도 업데이트
-            currentRetirementPlan = RetirementPlan(
-                currentAge = currentAge,
-                retirementAge = retirementAge,
-                currentSalary = currentSalary,
-                monthlyExpense = monthlyExpense,
-                targetRetirementAsset = dynamicAsset.projectedAsset,
-                monthlyRetirementExpense = dynamicAsset.monthlyRetirementExpense,
-                pensionAmount = dynamicAsset.currentPensionValue
-            )
-            
-            updateRetirementPlanUI(dynamicAsset)
-            updateAssetImpactAnimation()
-        } catch (e: Exception) {
-            // 초기화 실패 시 기본값으로 설정
-            e.printStackTrace()
         }
     }
     
-    /**
-     * 은퇴 계획 UI 업데이트 (동적 데이터)
-     */
-    private fun updateRetirementPlanUI(dynamicAsset: DynamicRetirementAsset? = null) {
-        try {
-            val plan = currentRetirementPlan ?: return
-            
-            // 동적 데이터가 있으면 사용, 없으면 기존 데이터 사용
-            val assetAmount = dynamicAsset?.projectedAsset ?: plan.targetRetirementAsset
-            val monthlyExpense = dynamicAsset?.monthlyRetirementExpense ?: plan.monthlyRetirementExpense
-            val pensionAmount = dynamicAsset?.currentPensionValue ?: plan.pensionAmount
-            
-            // 큰 글씨로 은퇴자산 표시
-            binding.tvTargetRetirementAsset.text = "${nf.format(assetAmount)}원"
-            binding.tvMonthlyRetirementExpense.text = "${nf.format(monthlyExpense)}원"
-            binding.tvPensionAmount.text = "${nf.format(pensionAmount)}원"
-            
-            // 애니메이션 효과 추가
-            animateRetirementAssetChange(assetAmount)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-    
-    /**
-     * 은퇴자산 변경 애니메이션
-     */
-    private fun animateRetirementAssetChange(newAmount: Long) {
-        val assetText = binding.tvTargetRetirementAsset
-        val progressBar = binding.progressAssetImpact
+    private fun updateSummary(transactions: List<CardTransaction>, incomeTransactions: List<com.ssj.statuswindow.database.entity.BankTransactionEntity>) {
+        val totalCount = transactions.size
+        val cardTransactions = transactions.filter { it.cardType.contains("카드") }
+        val bankTransactions = transactions.filter { !it.cardType.contains("카드") }
         
-        // 텍스트 색상 애니메이션
-        assetText.animate()
-            .scaleX(1.1f)
-            .scaleY(1.1f)
+        val summary = StringBuilder()
+        summary.append("📊 파싱 결과 요약\n\n")
+        summary.append("총 거래: ${totalCount}건\n")
+        summary.append("카드 거래: ${cardTransactions.size}건\n")
+        summary.append("은행 거래: ${bankTransactions.size}건\n")
+        summary.append("소득 거래: ${incomeTransactions.size}건\n\n")
+        
+        if (cardTransactions.isNotEmpty()) {
+            // DB에서 직접 계산 (쿼리 합산)
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val cardTransactionDao = database.cardTransactionDao()
+                    
+                    // 현재 월의 시작과 끝 날짜 계산
+                    val now = java.time.LocalDateTime.now()
+                    val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                    val endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
+                    
+                    // DB 쿼리로 계산
+                    val totalAmount = cardTransactionDao.getTotalCardUsageAmount(startOfMonth, endOfMonth) ?: 0L
+                    val monthlyBillAmount = cardTransactionDao.getMonthlyBillAmount(startOfMonth, endOfMonth) ?: 0L
+                    
+                            // 메인 스레드에서 UI 업데이트
+                            withContext(Dispatchers.Main) {
+                                val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+                                summary.append("카드사용 총액: ${formatter.format(totalAmount)}원 (DB 쿼리)\n")
+                                summary.append("이번달 청구금액: ${formatter.format(monthlyBillAmount)}원 (DB 쿼리)\n")
+                                summary.append("파싱된 거래 수: ${cardTransactions.size}건\n")
+                                
+                                // 소득 정보도 추가
+                                val totalIncome = incomeTransactions.sumOf { transaction -> transaction.amount }
+                                summary.append("소득 총액: ${formatter.format(totalIncome)}원\n\n")
+                                
+                                // 각 거래별 상세 정보 표시 (메모리 계산으로 비교)
+                                summary.append("=== 거래 상세 (메모리 계산) ===\n")
+                                cardTransactions.forEachIndexed { index, transaction ->
+                                    val billAmount = calculateMonthlyBillAmount(transaction)
+                                    summary.append("${index + 1}. ${transaction.merchant} - ${transaction.transactionType} - ${transaction.installment} - ${formatter.format(transaction.amount)}원 → ${formatter.format(billAmount)}원\n")
+                                }
+                                
+                                tvSummary.text = summary.toString()
+                                
+                                // 대시보드 업데이트 추가 (DB에서 읽어온 값 사용)
+                                updateDashboard(monthlyBillAmount, totalAmount)
+                                
+                                // 소득금액도 업데이트 (입출금내역에서 입금만)
+                                val bankTransactionDao = database.bankTransactionDao()
+                                val currentMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfMonth, endOfMonth) ?: 0L
+                                val lastMonth = java.time.LocalDateTime.now().minusMonths(1)
+                                val startOfLastMonth = lastMonth.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                                val endOfLastMonth = lastMonth.withDayOfMonth(lastMonth.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
+                                val lastMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfLastMonth, endOfLastMonth) ?: 0L
+                                updateIncomeDashboard(currentMonthIncome, lastMonthIncome)
+                            }
+                    
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        summary.append("❌ DB 쿼리 오류: ${e.message}")
+                        tvSummary.text = summary.toString()
+                    }
+                }
+            }
+        } else {
+            tvSummary.text = summary.toString()
+        }
+    }
+    
+    private fun updateSummary(message: String) {
+        tvSummary.text = message
+    }
+    
+    /**
+     * 신용카드 테이블 표시
+     */
+    private fun showCreditCardTable() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val creditCardUsageDao = database.creditCardUsageDao()
+                val allCreditCardUsage = creditCardUsageDao.getAllCreditCardUsage()
+                
+                // Flow를 collect하여 데이터 가져오기
+                allCreditCardUsage.collect { creditCardList ->
+                    withContext(Dispatchers.Main) {
+                        displayCreditCardTable(creditCardList)
+                    }
+                }
+                
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    tvSummary.text = "❌ 신용카드 테이블 조회 오류: ${e.message}"
+                }
+            }
+        }
+    }
+    
+    /**
+     * 신용카드 테이블 데이터 표시
+     */
+    private fun displayCreditCardTable(creditCardList: List<CreditCardUsageEntity>) {
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("MM/dd HH:mm")
+        
+        val tableText = StringBuilder()
+        tableText.append("💳 신용카드 사용내역 테이블\n")
+        tableText.append("=".repeat(50)).append("\n\n")
+        
+        if (creditCardList.isEmpty()) {
+            tableText.append("저장된 신용카드 사용내역이 없습니다.\n")
+            tableText.append("먼저 '샘플 테스트' 또는 '직접 입력'을 실행해주세요.")
+        } else {
+            // 테이블 헤더
+            tableText.append("ID | 카드명 | 거래타입 | 금액 | 할부 | 월납부 | 가맹점 | 거래일시\n")
+            tableText.append("-".repeat(80)).append("\n")
+            
+            // 테이블 데이터
+            creditCardList.forEach { creditCard ->
+                tableText.append("${creditCard.id} | ")
+                tableText.append("${creditCard.cardName} | ")
+                tableText.append("${creditCard.transactionType} | ")
+                tableText.append("${formatter.format(creditCard.amount)}원 | ")
+                tableText.append("${creditCard.installment} | ")
+                tableText.append("${formatter.format(creditCard.monthlyPayment)}원 | ")
+                tableText.append("${creditCard.merchant} | ")
+                tableText.append("${creditCard.transactionDate.format(dateFormatter)}\n")
+            }
+            
+            // 통계 정보
+            tableText.append("\n📊 통계 정보\n")
+            tableText.append("-".repeat(30)).append("\n")
+            tableText.append("총 거래 건수: ${creditCardList.size}건\n")
+            
+            val totalAmount = creditCardList.sumOf { it.amount }
+            val totalMonthlyPayment = creditCardList.sumOf { it.monthlyPayment }
+            
+            tableText.append("총 사용금액: ${formatter.format(totalAmount)}원\n")
+            tableText.append("총 월납부금액: ${formatter.format(totalMonthlyPayment)}원\n")
+            
+            // 카드별 통계
+            val cardStats = creditCardList.groupBy { it.cardName }
+            tableText.append("\n💳 카드별 사용내역\n")
+            tableText.append("-".repeat(30)).append("\n")
+            
+            cardStats.forEach { (cardName, transactions) ->
+                val cardTotalAmount = transactions.sumOf { it.amount }
+                val cardMonthlyPayment = transactions.sumOf { it.monthlyPayment }
+                tableText.append("${cardName}: ${transactions.size}건, ${formatter.format(cardTotalAmount)}원, 월납부 ${formatter.format(cardMonthlyPayment)}원\n")
+            }
+        }
+        
+        tvSummary.text = tableText.toString()
+    }
+    
+    /**
+     * 대시보드 업데이트 (애니메이션 포함)
+     */
+    private fun updateDashboard(monthlyBillAmount: Long, totalAmount: Long) {
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+        
+        // 이달 소비금액 텍스트 업데이트 (결제금액 총액 사용)
+        val spendingText = "이달 소비금액 ${formatter.format(totalAmount)}원 (전월 0원)"
+        animateTextChange(tvMonthlySpending, spendingText)
+        
+        // 진행률 계산 (예: 월 예산 500,000원 기준)
+        val monthlyBudget = 500000L // 월 예산 설정
+        val progressPercent = if (monthlyBudget > 0) {
+            ((totalAmount.toFloat() / monthlyBudget) * 100).toInt().coerceIn(0, 100)
+        } else 0
+        
+        // 진행률 바 애니메이션 (색상 포함)
+        animateProgressBarWithColor(progressSpending, progressPercent)
+        
+        // 진행률 텍스트 애니메이션
+        val progressText = "${progressPercent}%"
+        animateTextChange(tvProgressPercent, progressText)
+        
+        // 색상 변경 애니메이션
+        animateColorChange(tvMonthlySpending, progressPercent)
+    }
+    
+    /**
+     * 소득금액 대시보드 업데이트 (애니메이션 포함)
+     */
+    private fun updateIncomeDashboard(currentMonthIncome: Long, lastMonthIncome: Long) {
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+        
+        // 이달 소득금액 텍스트 업데이트 (애니메이션)
+        val incomeChange = currentMonthIncome - lastMonthIncome
+        val incomeText = "이달 소득금액 ${formatter.format(currentMonthIncome)}원 (+${formatter.format(incomeChange)}원)"
+        animateTextChange(tvMonthlyIncome, incomeText)
+        
+        // 전월 소득금액 텍스트 업데이트
+        val lastMonthText = "전월: ${formatter.format(lastMonthIncome)}원"
+        animateTextChange(tvIncomeChange, lastMonthText)
+        
+        // 증가율 계산 및 표시
+        val changePercent = if (lastMonthIncome > 0) {
+            ((incomeChange.toFloat() / lastMonthIncome) * 100).toInt()
+        } else 0
+        
+        val changePercentText = if (changePercent >= 0) "+${changePercent}%" else "${changePercent}%"
+        animateTextChange(tvIncomeChangePercent, changePercentText)
+        
+        // 증가율에 따른 색상 변경
+        val color = if (changePercent >= 0) {
+            android.R.color.holo_green_dark
+        } else {
+            android.R.color.holo_red_dark
+        }
+        tvIncomeChangePercent.setTextColor(resources.getColor(color, null))
+    }
+    
+    /**
+     * 텍스트 변경 애니메이션
+     */
+    private fun animateTextChange(textView: TextView, newText: String) {
+        textView.animate()
+            .alpha(0.3f)
             .setDuration(200)
             .withEndAction {
-                assetText.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(200)
-                    .start()
-            }
-            .start()
-        
-        // 프로그레스 바 애니메이션
-        val maxAsset = 1000000000L // 10억
-        val progress = ((newAmount.toFloat() / maxAsset) * 100).toInt().coerceIn(0, 100)
-        
-        ValueAnimator.ofInt(progressBar.progress, progress).apply {
-            duration = 1000
-            addUpdateListener { animator ->
-                progressBar.progress = animator.animatedValue as Int
-            }
-            start()
-        }
-    }
-    private fun getCurrentMonthlyExpense(): Long {
-        return try {
-            val transactions = vm.getAllTransactions()
-            val currentMonth = java.time.LocalDate.now()
-            
-            val monthlyTransactions = transactions.filter { transaction ->
-                transaction.transactionDate?.let { date ->
-                    date.year == currentMonth.year &&
-                    date.monthValue == currentMonth.monthValue
-                } ?: false
-            }
-            
-            monthlyTransactions.sumOf { it.amount }
-        } catch (e: Exception) {
-            // 오류 발생 시 기본값 반환
-            e.printStackTrace()
-            0L
-        }
-    }
-    
-    /**
-     * 자산 영향 애니메이션 업데이트
-     */
-    private fun updateAssetImpactAnimation() {
-        try {
-            val plan = currentRetirementPlan ?: return
-            val currentSpending = getCurrentMonthlyExpense()
-            
-            // 현재 소비가 미래 자산에 미치는 영향 계산
-            val assetImpact = RetirementCalculationService.calculateSpendingImpact(
-                additionalSpending = currentSpending,
-                currentAge = plan.currentAge,
-                retirementAge = plan.retirementAge
-            )
-            
-            // UI 업데이트
-            binding.tvAssetImpact.text = "이번 달 소비: ${nf.format(currentSpending)}원 → 미래 자산 감소: ${nf.format(assetImpact)}원"
-            
-            // 프로그레스 바 업데이트 (최대 1000만원 기준)
-            val maxImpact = 10000000L
-            val progress = ((assetImpact.toFloat() / maxImpact) * 100).toInt().coerceIn(0, 100)
-            binding.progressAssetImpact.progress = progress
-            
-            // 드라마틱한 애니메이션 효과
-            animateAssetImpact(assetImpact)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-    
-    /**
-     * 자산 영향 드라마틱 애니메이션
-     */
-    private fun animateAssetImpact(assetImpact: Long) {
-        val impactText = binding.tvAssetImpact
-        val progressBar = binding.progressAssetImpact
-        
-        // 텍스트 색상 애니메이션
-        impactText.animate()
-            .scaleX(1.1f)
-            .scaleY(1.1f)
-            .setDuration(300)
-            .withEndAction {
-                impactText.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
+                textView.text = newText
+                textView.animate()
+                    .alpha(1.0f)
                     .setDuration(300)
                     .start()
             }
             .start()
+    }
+    
+    /**
+     * 진행률 바 애니메이션 (색상 포함)
+     */
+    private fun animateProgressBarWithColor(progressBar: ProgressBar, targetProgress: Int) {
+        val currentProgress = progressBar.progress
+        val animator = android.animation.ValueAnimator.ofInt(currentProgress, targetProgress)
+        animator.duration = 1000
+        animator.addUpdateListener { animation ->
+            val progress = animation.animatedValue as Int
+            progressBar.progress = progress
+            
+            // 진행률에 따른 색상 변경
+            val color = when {
+                progress >= 80 -> android.R.color.holo_red_dark
+                progress >= 60 -> android.R.color.holo_orange_dark
+                else -> android.R.color.holo_green_dark
+            }
+            progressBar.progressTintList = android.content.res.ColorStateList.valueOf(
+                progressBar.context.resources.getColor(color, null)
+            )
+        }
+        animator.start()
+    }
+    
+    /**
+     * 색상 변경 애니메이션
+     */
+    private fun animateColorChange(textView: TextView, progressPercent: Int) {
+        val color = when {
+            progressPercent >= 80 -> android.R.color.holo_red_dark
+            progressPercent >= 60 -> android.R.color.holo_orange_dark
+            else -> android.R.color.holo_green_dark
+        }
         
-        // 프로그레스 바 애니메이션
-        progressBar.animate()
-            .alpha(0.7f)
+        textView.setTextColor(textView.context.resources.getColor(color, null))
+        
+        // 펄스 애니메이션 효과
+        textView.animate()
+            .scaleX(1.1f)
+            .scaleY(1.1f)
             .setDuration(200)
             .withEndAction {
-                progressBar.animate()
-                    .alpha(1.0f)
+                textView.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
                     .setDuration(200)
                     .start()
             }
@@ -543,648 +728,85 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
-     * 은행잔고 정보 감지 및 저장
+     * 앱 시작 시 기존 데이터로 대시보드 초기화
      */
-    private fun detectAndSaveBankBalance(smsText: String) {
-        try {
-            val bankBalance = CardSmsParser.parseBankBalance(smsText)
-            if (bankBalance != null) {
-                // AssetRepository에 은행잔고 추가
-                assetRepo.addBankBalance(bankBalance)
-                
-                android.util.Log.d("MainActivity", "Bank balance detected and saved: ${bankBalance.bankName} ${bankBalance.accountNumber} - ${nf.format(bankBalance.balance)}원")
-                
-                // 사용자에게 알림
-                Snackbar.make(binding.root, 
-                    "은행잔고가 자동으로 추가되었습니다!\n" +
-                    "${bankBalance.bankName} ${bankBalance.accountNumber}\n" +
-                    "잔고: ${nf.format(bankBalance.balance)}원", 
-                    Snackbar.LENGTH_LONG
-                ).show()
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Error detecting bank balance", e)
-        }
-    }
-    
-    /**
-     * 급여 정보 감지 및 저장
-     */
-    private fun detectAndSaveSalary(notificationText: String, appName: String) {
-        val salaryInfo = FinancialNotificationAnalyzer.extractSalaryInfo(notificationText, appName)
-        if (salaryInfo != null) {
-            detectedSalary = salaryInfo
-            
-            // 실수령액 기반 국민연금 납입액 역계산
-            val pensionInfo = retirementService.calculatePensionContributionFromNetSalary(salaryInfo.amount)
-            
-            // 수입 정보로 저장 (실수령액 기준으로 수정)
-            val incomeInfo = IncomeInfo(
-                amount = salaryInfo.amount, // 실수령액으로 저장 (품질 개선)
-                source = "급여",
-                bankName = salaryInfo.bankName,
-                transactionDate = salaryInfo.salaryDate,
-                description = "월급 (실수령액: ${nf.format(salaryInfo.amount)}원, 총급여: ${nf.format(pensionInfo.grossSalary)}원, 국민연금: ${nf.format(pensionInfo.pensionContribution)}원)",
-                isRecurring = true
-            )
-            incomeRepo.addIncome(incomeInfo)
-            
-            updateRetirementPlan()
-
-            // 급여 감지 알림 (국민연금 정보 포함)
-            Snackbar.make(binding.root, 
-                "급여 정보가 감지되었습니다!\n" +
-                "실수령액: ${nf.format(salaryInfo.amount)}원\n" +
-                "총급여: ${nf.format(pensionInfo.grossSalary)}원\n" +
-                "국민연금 납입액: ${nf.format(pensionInfo.pensionContribution)}원", 
-                Snackbar.LENGTH_LONG).show()
-        }
-    }
-    
-    /**
-     * 자동이체 정보 감지 및 저장
-     */
-    private fun detectAndSaveAutoTransfer(notificationText: String, appName: String) {
-        val autoTransferInfo = FinancialNotificationAnalyzer.extractAutoTransferInfo(notificationText, appName)
-        if (autoTransferInfo != null) {
-            autoTransfers.add(autoTransferInfo)
-            
-            // 자동이체 감지 알림
-            Snackbar.make(binding.root, "자동이체 감지: ${autoTransferInfo.transferType} ${nf.format(autoTransferInfo.amount)}원", Snackbar.LENGTH_SHORT).show()
-        }
-    }
-    
-    /**
-     * 엑셀 내보내기 다이얼로그 표시
-     */
-    private fun showExportExcelDialog() {
-        val options = arrayOf(
-            "거래내역 미리보기",
-            "월별 요약 미리보기", 
-            "통합 리포트 미리보기"
-        )
-        
-        AlertDialog.Builder(this)
-            .setTitle("엑셀 내보내기")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showTransactionPreview()
-                    1 -> showMonthlySummaryPreview()
-                    2 -> showComprehensiveReportPreview()
-                }
-            }
-            .setNegativeButton("취소", null)
-            .show()
-    }
-    
-    /**
-     * 현재 타임스탬프 생성
-     */
-    private fun getCurrentTimestamp(): String {
-        val sdf = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
-        return sdf.format(java.util.Date())
-    }
-    
-    /**
-     * 거래내역 미리보기 표시
-     */
-    private fun showTransactionPreview() {
-        val transactions = vm.getAllTransactions()
-        val fileName = "card_transactions_${getCurrentTimestamp()}.csv"
-        
-        ExcelPreviewDialog.showTransactionPreview(
-            context = this,
-            transactions = transactions,
-            fileName = fileName,
-            onDownload = { exportCardTransactions() },
-            onCancel = { }
-        )
-    }
-    
-    /**
-     * 월별 요약 미리보기 표시
-     */
-    private fun showMonthlySummaryPreview() {
-        val transactions = vm.getAllTransactions()
-        val summary = monthlySummaryService.calculateMonthlySummary(transactions)
-        val fileName = "monthly_summary_${getCurrentTimestamp()}.csv"
-        
-        ExcelPreviewDialog.showMonthlySummaryPreview(
-            context = this,
-            summary = summary,
-            fileName = fileName,
-            onDownload = { exportMonthlySummary() },
-            onCancel = { }
-        )
-    }
-    
-    /**
-     * 통합 리포트 미리보기 표시
-     */
-    private fun showComprehensiveReportPreview() {
-        val transactions = vm.getAllTransactions()
-        val summary = monthlySummaryService.calculateMonthlySummary(transactions)
-        val forecast = monthlySummaryService.calculatePaymentForecast(transactions)
-        val fileName = "comprehensive_report_${getCurrentTimestamp()}.csv"
-        
-        ExcelPreviewDialog.showComprehensiveReportPreview(
-            context = this,
-            transactions = transactions,
-            summary = summary,
-            forecast = forecast,
-            fileName = fileName,
-            onDownload = { exportComprehensiveReport() },
-            onCancel = { }
-        )
-    }
-    
-    /**
-     * 카드 거래내역만 내보내기
-     */
-    private fun exportCardTransactions() {
-        scope.launch {
+    private fun loadDashboardData() {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val transactions = vm.getAllTransactions()
-                val file = excelExportService.exportCardTransactions(transactions)
+                val cardTransactionDao = database.cardTransactionDao()
                 
-                if (file != null) {
-                    Snackbar.make(binding.root, "거래내역이 내보내기되었습니다: ${file.name}", Snackbar.LENGTH_LONG).show()
-                } else {
-                    Snackbar.make(binding.root, "내보내기 실패", Snackbar.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Snackbar.make(binding.root, "내보내기 오류: ${e.message}", Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-    
-    /**
-     * 월별 요약만 내보내기
-     */
-    private fun exportMonthlySummary() {
-        scope.launch {
-            try {
-                val transactions = vm.getAllTransactions()
-                val summary = monthlySummaryService.calculateMonthlySummary(transactions)
-                val file = excelExportService.exportMonthlySummary(summary)
+                // 현재 월의 시작과 끝 날짜 계산
+                val now = java.time.LocalDateTime.now()
+                val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                val endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
                 
-                if (file != null) {
-                    Snackbar.make(binding.root, "월별 요약이 내보내기되었습니다: ${file.name}", Snackbar.LENGTH_LONG).show()
-                } else {
-                    Snackbar.make(binding.root, "내보내기 실패", Snackbar.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Snackbar.make(binding.root, "내보내기 오류: ${e.message}", Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-    
-    /**
-     * 통합 리포트 내보내기
-     */
-    private fun exportComprehensiveReport() {
-        scope.launch {
-            try {
-                val transactions = vm.getAllTransactions()
-                val summary = monthlySummaryService.calculateMonthlySummary(transactions)
-                val forecast = monthlySummaryService.calculatePaymentForecast(transactions)
-                val file = excelExportService.exportComprehensiveReport(transactions, summary, forecast)
+                // DB에서 현재 월 데이터 조회
+                val monthlyBillAmount = cardTransactionDao.getMonthlyBillAmount(startOfMonth, endOfMonth) ?: 0L
+                val totalAmount = cardTransactionDao.getTotalCardUsageAmount(startOfMonth, endOfMonth) ?: 0L
                 
-                if (file != null) {
-                    Snackbar.make(binding.root, "통합 리포트가 내보내기되었습니다: ${file.name}", Snackbar.LENGTH_LONG).show()
-                } else {
-                    Snackbar.make(binding.root, "내보내기 실패", Snackbar.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Snackbar.make(binding.root, "내보내기 오류: ${e.message}", Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-    
-    private fun initializeSettings() {
-        settingsPreferences = SettingsPreferences.getInstance(this)
-        updateDuplicateSettingsDisplay()
-    }
-    
-    private fun updateDuplicateSettingsDisplay() {
-        val minutes = settingsPreferences.getDuplicateDetectionMinutes()
-        binding.tvDuplicateSettings.text = "중복 거래 인식: ${minutes}분"
-    }
-    
-    private fun openSettings() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        startActivity(intent)
-    }
-    
-    
-    
-    private fun parseAndAddSmsTransactions(smsText: String) {
-        try {
-            val duplicateDetectionMinutes = settingsPreferences.getDuplicateDetectionMinutes()
-            val newTransactions = CardSmsParser.parseSmsText(smsText, duplicateDetectionMinutes)
-            
-            // 각 줄마다 개별적으로 급여 정보와 은행잔고 정보 감지
-            val lines = smsText.trim().split("\n")
-            for (line in lines) {
-                if (line.isBlank()) continue
+                // 소득 데이터 조회 (입출금내역에서 입금만)
+                val bankTransactionDao = database.bankTransactionDao()
+                val currentMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfMonth, endOfMonth) ?: 0L
                 
-                // 급여 정보 감지 (각 줄마다)
-                detectAndSaveSalary(line, "SMS 입력")
+                // 전월 소득 데이터 조회
+                val lastMonth = now.minusMonths(1)
+                val startOfLastMonth = lastMonth.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                val endOfLastMonth = lastMonth.withDayOfMonth(lastMonth.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
+                val lastMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfLastMonth, endOfLastMonth) ?: 0L
                 
-                // 은행잔고 정보 감지 (각 줄마다)
-                detectAndSaveBankBalance(line)
-            }
-            
-            if (newTransactions.isNotEmpty()) {
-                // 기존 거래와 중복 제거
-                val existingKeys = cardTransactions.map { transaction ->
-                    "${transaction.cardNumber}_${transaction.amount}_${transaction.transactionDate}_${transaction.merchant}"
-                }.toSet()
-                
-                val uniqueNewTransactions = newTransactions.filter { transaction ->
-                    val uniqueKey = "${transaction.cardNumber}_${transaction.amount}_${transaction.transactionDate}_${transaction.merchant}"
-                    !existingKeys.contains(uniqueKey)
-                }
-                
-                if (uniqueNewTransactions.isNotEmpty()) {
-                    cardTransactions.addAll(uniqueNewTransactions)
-                    // Repository에도 저장
-                    vm.addAllTransactions(uniqueNewTransactions)
-                    updateMonthlyTotal()
-                    updateMonthlyIncome() // 수입 정보도 업데이트
-                    
-                    Snackbar.make(
-                        binding.root,
-                        getString(R.string.msg_imported_n, uniqueNewTransactions.size),
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                } else {
-                    Snackbar.make(
-                        binding.root,
-                        "모든 거래가 이미 존재합니다",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
-            } else {
-                // 거래는 없지만 급여 정보가 있을 수 있으므로 수입 정보 업데이트
-                updateMonthlyIncome()
-                Snackbar.make(
-                    binding.root,
-                    R.string.msg_no_parsable,
-                    Snackbar.LENGTH_LONG
-                ).show()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Snackbar.make(
-                binding.root,
-                "SMS 파싱 중 오류가 발생했습니다: ${e.message}",
-                Snackbar.LENGTH_LONG
-            ).show()
-        }
-        
-        // 은퇴자산 추정 업데이트
-        updateRetirementAssetEstimate()
-    }
-
-
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-        drawerToggle.syncState()
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        drawerToggle.onConfigurationChanged(newConfig)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (drawerToggle.onOptionsItemSelected(item)) {
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateMonthlyTotal()
-        updateMonthlyIncome()
-        updateNotificationAccessIndicator()
-        updateRetirementAssetEstimate() // 은퇴자산 추정 업데이트
-        // 설정 화면에서 돌아왔을 때 설정 표시 업데이트
-        updateDuplicateSettingsDisplay()
-    }
-
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
-    private fun isNotificationAccessEnabled(): Boolean {
-        val enabled = Settings.Secure.getString(
-            contentResolver, "enabled_notification_listeners"
-        )
-        return enabled?.split(":")?.any { it.contains(packageName, ignoreCase = true) } == true
-    }
-
-    private fun openNotificationAccessSettings() {
-        NotificationHistoryPermissionManager.requestNotificationAccessPermission(this)
-    }
-
-    private fun updateNotificationAccessIndicator() {
-        val permissionStatus = NotificationHistoryPermissionManager.getPermissionStatus(this)
-        binding.chipNotifyStatus.isChecked = permissionStatus.hasNotificationAccess
-        binding.chipNotifyStatus.text = if (permissionStatus.hasNotificationAccess) getString(R.string.notify_on) else getString(R.string.notify_off)
-    }
-
-    private fun showPasteDialog() {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_paste, null)
-        val et = view.findViewById<EditText>(R.id.etPaste)
-
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.title_paste_sms))
-            .setView(view)
-            .setPositiveButton(R.string.action_import) { d, _ ->
-                val text = et.text?.toString().orEmpty()
-                parseAndAddSmsTransactions(text)
-                d.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
-            .show()
-    }
-
-    private fun openNotificationLog() {
-        startActivity(Intent(this, NotificationLogActivity::class.java))
-    }
-
-    private fun showExportDialog() {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_export_sheets, null)
-        val etUrl = view.findViewById<EditText>(R.id.etScriptUrl)
-        val etSheet = view.findViewById<EditText>(R.id.etSheetName)
-        etUrl.setText(exportPrefs.endpointUrl)
-        etSheet.setText(exportPrefs.sheetName.ifBlank { getString(R.string.default_sheet_name) })
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.title_export_to_sheets)
-            .setView(view)
-            .setPositiveButton(R.string.menu_export_sheets) { dialog, _ ->
-                val url = etUrl.text?.toString().orEmpty()
-                val sheet = etSheet.text?.toString().orEmpty()
-                if (url.isBlank()) {
-                    Snackbar.make(binding.root, R.string.msg_export_requires_url, Snackbar.LENGTH_LONG).show()
-                    return@setPositiveButton
-                }
-                exportPrefs.endpointUrl = url
-                exportPrefs.sheetName = sheet.ifBlank { getString(R.string.default_sheet_name) }
-                exportNotifications(url, sheet)
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
-            .show()
-    }
-
-    private fun exportNotifications(url: String, sheetName: String) {
-        val snackbar = Snackbar.make(binding.root, R.string.msg_export_progress, Snackbar.LENGTH_INDEFINITE)
-        scope.launch {
-            snackbar.show()
-            val result = sheetsExporter.export(
-                SheetsShareConfig(
-                    endpointUrl = url,
-                    sheetName = sheetName.ifBlank { getString(R.string.default_sheet_name) }
-                )
-            )
-            snackbar.dismiss()
-            result
-                .onSuccess { count ->
-                    if (count <= 0) {
-                        Snackbar.make(
-                            binding.root,
-                            R.string.msg_export_empty,
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                // 메인 스레드에서 대시보드 업데이트
+                withContext(Dispatchers.Main) {
+                    if (monthlyBillAmount > 0 || totalAmount > 0) {
+                        // 데이터가 있으면 대시보드 업데이트
+                        updateDashboard(monthlyBillAmount, totalAmount)
+                        updateIncomeDashboard(currentMonthIncome, lastMonthIncome)
+                        
+                        // 요약 정보도 업데이트
+                        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+                        val summaryText = "📊 기존 데이터 로드 완료\n\n" +
+                                "카드사용 총액: ${formatter.format(totalAmount)}원\n" +
+                                "이번달 청구금액: ${formatter.format(monthlyBillAmount)}원"
+                        tvSummary.text = summaryText
                     } else {
-                        Snackbar.make(
-                            binding.root,
-                            getString(R.string.msg_export_success, count),
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        // 데이터가 없으면 기본 메시지
+                        tvSummary.text = "📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건"
                     }
                 }
-                .onFailure { t ->
-                    val message = t.localizedMessage?.takeIf { it.isNotBlank() }
-                        ?: getString(R.string.msg_export_failure_unknown)
-                    Snackbar.make(
-                        binding.root,
-                        getString(R.string.msg_export_failure, message),
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
-        }
-    }
-    
-    /**
-     * 은퇴설정 다이얼로그 표시
-     */
-    private fun showRetirementSettingsDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_retirement_settings, null)
-        
-        val etBirthDate = dialogView.findViewById<EditText>(R.id.etBirthDate)
-        val etPensionMonths = dialogView.findViewById<EditText>(R.id.etPensionMonths)
-        val etRetirementAge = dialogView.findViewById<EditText>(R.id.etRetirementAge)
-        val etNetMonthlyIncome = dialogView.findViewById<EditText>(R.id.etNetMonthlyIncome)
-        val tvCalculationPreview = dialogView.findViewById<TextView>(R.id.tvCalculationPreview)
-        
-        // 현재 설정값으로 초기화
-        etBirthDate.setText("${retirementSettings.birthDate.year}-${retirementSettings.birthDate.monthValue.toString().padStart(2, '0')}")
-        etPensionMonths.setText(retirementSettings.pensionSubscriptionMonths.toString())
-        etRetirementAge.setText(retirementSettings.desiredRetirementAge.toString())
-        etNetMonthlyIncome.setText("3000000") // 기본값
-        
-        // 계산 미리보기 업데이트
-        updateCalculationPreview(etNetMonthlyIncome.text.toString().toLongOrNull() ?: 3000000L, tvCalculationPreview)
-        
-        // 실시간 계산 미리보기
-        etNetMonthlyIncome.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val income = s.toString().toLongOrNull() ?: 0L
-                if (income > 0) {
-                    updateCalculationPreview(income, tvCalculationPreview)
-                }
-            }
-        })
-        
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogView)
-            .setPositiveButton("저장") { _, _ ->
-                saveRetirementSettings(
-                    etBirthDate.text.toString(),
-                    etPensionMonths.text.toString().toIntOrNull() ?: 420,
-                    etRetirementAge.text.toString().toIntOrNull() ?: 60
-                )
-            }
-            .setNegativeButton("취소", null)
-            .create()
-        
-        dialog.show()
-    }
-    
-    /**
-     * 계산 미리보기 업데이트
-     */
-    private fun updateCalculationPreview(netMonthlyIncome: Long, tvPreview: TextView) {
-        try {
-            val result = retirementService.calculatePensionWithNewFormula(
-                birthDate = "${retirementSettings.birthDate.year}-${retirementSettings.birthDate.monthValue.toString().padStart(2, '0')}",
-                netMonthlyIncome = netMonthlyIncome,
-                retirementAge = retirementSettings.desiredRetirementAge,
-                subscriptionMonths = retirementSettings.pensionSubscriptionMonths
-            )
-            
-            tvPreview.text = "${result.calculationResult.baseIncomeAmount}\n${result.calculationResult.expectedPensionAmount}"
-        } catch (e: Exception) {
-            tvPreview.text = "계산 오류"
-        }
-    }
-    
-    /**
-     * 은퇴설정 저장
-     */
-    private fun saveRetirementSettings(birthDateStr: String, pensionMonths: Int, retirementAge: Int) {
-        try {
-            val parts = birthDateStr.split("-")
-            if (parts.size == 2) {
-                val year = parts[0].toInt()
-                val month = parts[1].toInt()
-                
-                retirementSettings = RetirementSettings(
-                    birthDate = LocalDate.of(year, month, 1),
-                    pensionSubscriptionMonths = pensionMonths,
-                    desiredRetirementAge = retirementAge
-                )
-                
-                // UI 업데이트
-                updateRetirementSettingsUI()
-                
-                Snackbar.make(binding.root, "은퇴설정이 저장되었습니다", Snackbar.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Snackbar.make(binding.root, "설정 저장 중 오류가 발생했습니다", Snackbar.LENGTH_SHORT).show()
-        }
-    }
-    
-    /**
-     * 은퇴자산 추정 업데이트
-     */
-    private fun updateRetirementAssetEstimate() {
-        scope.launch {
-            try {
-                // 현재 월 수입 및 지출 계산
-                val currentMonthIncome = try {
-                    incomeRepo.getCurrentMonthIncome()
-                } catch (e: Exception) {
-                    android.util.Log.e("MainActivity", "월 수입 조회 오류", e)
-                    0L
-                }
-                val currentMonthExpense = vm.events.value.sumOf { it.amount }
-                val currentAssets = assetRepo.getTotalAssetValue()
-                
-                // 은퇴자산 추정 계산
-                val estimate = retirementService.calculateRetirementAssetEstimate(
-                    retirementSettings = retirementSettings,
-                    currentAssets = currentAssets,
-                    currentMonthlyIncome = currentMonthIncome,
-                    currentMonthlyExpense = currentMonthExpense,
-                    countryCode = "KR"
-                )
-                
-                // UI 업데이트
-                updateRetirementAssetUI(estimate)
                 
             } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "Error updating retirement asset estimate", e)
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    tvSummary.text = "❌ 대시보드 로드 오류: ${e.message}"
+                }
             }
         }
     }
     
     /**
-     * 은퇴자산 UI 업데이트
+     * 거래별 이번달 청구금액 계산
      */
-    private fun updateRetirementAssetUI(estimate: RetirementAssetEstimate) {
-        // 목표 은퇴자산 표시
-        binding.tvTargetRetirementAsset.text = formatLargeNumber(estimate.estimatedRetirementAssets)
-        
-        // 자산 영향 텍스트 업데이트
-        val impactText = "이번 달 소비: ${nf.format(estimate.estimatedMonthlyExpense)}원 → 미래 자산 감소: ${nf.format(estimate.estimatedMonthlyExpense * estimate.yearsToRetirement * 12)}원"
-        binding.tvAssetImpact.text = impactText
-        
-        // 자산 영향 프로그레스 바 업데이트 (소비 대비 저축 비율)
-        val savingsRatio = if (estimate.estimatedMonthlyIncome > 0) {
-            (estimate.monthlySavings.toFloat() / estimate.estimatedMonthlyIncome.toFloat() * 100).toInt()
-        } else {
-            0
-        }
-        binding.progressAssetImpact.progress = savingsRatio
-        
-        // 은퇴 후 월 생활비 업데이트
-        binding.tvMonthlyRetirementExpense.text = "${nf.format(estimate.monthlyLivingExpenseAfterRetirement)}원"
-        
-        // 정교화된 국민연금 계산 및 표시
-        updateRefinedPensionDisplay(estimate.estimatedMonthlyIncome)
-        
-        android.util.Log.d("MainActivity", "Retirement asset estimate updated: ${estimate.estimatedRetirementAssets}")
-    }
-    
-    /**
-     * 정교화된 국민연금 표시 업데이트
-     */
-    private fun updateRefinedPensionDisplay(currentMonthlyIncome: Long) {
-        val refinedPensionResult = retirementService.calculateRefinedPension(
-            retirementSettings = retirementSettings,
-            currentMonthlySalary = currentMonthlyIncome,
-            countryCode = "KR"
-        )
-        
-        if (refinedPensionResult != null) {
-            // 실제 급여가 있을 때만 국민연금 표시
-            binding.tvPensionAmount.text = "${nf.format(refinedPensionResult.estimatedMonthlyPension)}원"
-            binding.tvPensionAmount.visibility = android.view.View.VISIBLE
-            
-            android.util.Log.d("MainActivity", "Refined pension calculated: ${refinedPensionResult.estimatedMonthlyPension}원 (${refinedPensionResult.calculationMethod})")
-        } else {
-            // 실제 급여가 없을 때는 국민연금 숨김
-            binding.tvPensionAmount.visibility = android.view.View.GONE
-            
-            android.util.Log.d("MainActivity", "No actual salary - pension display hidden")
-        }
-    }
-    
-    /**
-     * 큰 숫자를 한국식으로 포맷팅 (억, 만 단위)
-     */
-    private fun formatLargeNumber(amount: Long): String {
-        return when {
-            amount >= 100_000_000 -> {
-                val eok = amount / 100_000_000
-                val man = (amount % 100_000_000) / 10_000
-                if (man > 0) "${eok}억 ${man}만원" else "${eok}억원"
+    private fun calculateMonthlyBillAmount(transaction: CardTransaction): Long {
+        val amount = when {
+            transaction.transactionType == "취소" -> -transaction.amount
+            transaction.installment == "일시불" -> transaction.amount
+            transaction.installment.contains("개월") -> {
+                // 할부 거래의 첫 번째 달 금액 계산
+                val installmentMonths = transaction.installment.replace("개월", "").toIntOrNull() ?: 1
+                transaction.amount / installmentMonths // 첫 달 금액
             }
-            amount >= 10_000 -> {
-                val man = amount / 10_000
-                "${man}만원"
-            }
-            else -> "${nf.format(amount)}원"
+            else -> transaction.amount
         }
+        println("DEBUG: ${transaction.merchant} - ${transaction.transactionType} - ${transaction.installment} - ${transaction.amount} -> ${amount}")
+        return amount
     }
     
-    /**
-     * 은퇴설정 UI 업데이트
-     */
-    private fun updateRetirementSettingsUI() {
-        binding.tvBirthDate.text = "${retirementSettings.birthDate.year}-${retirementSettings.birthDate.monthValue.toString().padStart(2, '0')}"
-        binding.tvPensionMonths.text = "${retirementSettings.pensionSubscriptionMonths}개월"
-        binding.tvRetirementAge.text = "${retirementSettings.desiredRetirementAge}세"
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                drawerLayout.openDrawer(navigationView)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

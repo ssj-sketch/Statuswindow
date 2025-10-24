@@ -1,24 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0A1B3A</color>
+    <!-- 은퇴 자산 카드 배경색 -->
+    <color name="retirement_asset_background">#FF6B35</color>
     
-    <!-- RPG HUD 색상 -->
-    <color name="primary_color">#FF6200EE</color>
-    <color name="primary_text_color">#DE000000</color>
-    <color name="secondary_text_color">#99000000</color>
+    <!-- 기본 색상들 -->
+    <color name="primary_color">#FF6B35</color>
+    <color name="secondary_color">#F7931E</color>
+    <color name="success_color">#4CAF50</color>
+    <color name="warning_color">#FF9800</color>
+    <color name="error_color">#F44336</color>
     
-    <!-- 스탯별 색상 -->
-    <color name="wealth_color">#FF4CAF50</color>
-    <color name="vital_color">#FFF44336</color>
-    <color name="cognition_color">#FF2196F3</color>
-    <color name="balance_color">#FFFF9800</color>
-    <color name="income_color">#FF2E7D32</color>
-    <color name="profit_color">#FF2E7D32</color>
-    <color name="loss_color">#FFD32F2F</color>
+    <!-- 텍스트 색상 -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="primary_text_color">#212121</color>
+    <color name="secondary_text_color">#757575</color>
     
-    <!-- 진행바 색상 -->
-    <color name="progress_track_color">#1F000000</color>
+    <!-- 배경 색상 -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="background_card">#FFFFFF</color>
     
-    <!-- 버프/디버프 색상 -->
-    <color name="buff_color">#FF4CAF50</color>
-    <color name="debuff_color">#FFF44336</color>
+    <!-- 앱별 색상들 -->
+    <color name="buff_color">#FF9800</color>
+    <color name="wealth_color">#4CAF50</color>
+    <color name="income_color">#2196F3</color>
+    
+    <!-- 프로그레스 바 색상 -->
+    <color name="progress_track_color">#E0E0E0</color>
+    
+    <!-- 런처 아이콘 배경 -->
+    <color name="ic_launcher_background">#FF6B35</color>
+    
+    <!-- 추가 색상들 -->
+    <color name="debuff_color">#F44336</color>
+    <color name="profit_color">#4CAF50</color>
+    <color name="loss_color">#F44336</color>
 </resources>

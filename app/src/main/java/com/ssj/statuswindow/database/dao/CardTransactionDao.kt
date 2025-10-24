@@ -46,4 +46,36 @@ interface CardTransactionDao {
 
     @Query("SELECT COUNT(*) FROM card_transactions")
     suspend fun getCardTransactionCount(): Int
+    
+    /**
+     * 이번달 청구금액 계산 (일시불 + 할부 첫달)
+     * 취소는 음수로, 할부는 첫달만 계산
+     */
+    @Query("""
+        SELECT SUM(
+            CASE 
+                WHEN transactionType = '취소' THEN -amount
+                WHEN installment = '일시불' THEN amount
+                WHEN installment LIKE '%개월' THEN 
+                    amount / CAST(REPLACE(installment, '개월', '') AS INTEGER)
+                ELSE amount
+            END
+        ) FROM card_transactions 
+        WHERE transactionDate BETWEEN :startDate AND :endDate
+    """)
+    suspend fun getMonthlyBillAmount(startDate: LocalDateTime, endDate: LocalDateTime): Long?
+    
+    /**
+     * 카드사용 총액 계산 (승인/취소 구분)
+     */
+    @Query("""
+        SELECT SUM(
+            CASE 
+                WHEN transactionType = '취소' THEN -amount
+                ELSE amount
+            END
+        ) FROM card_transactions 
+        WHERE transactionDate BETWEEN :startDate AND :endDate
+    """)
+    suspend fun getTotalCardUsageAmount(startDate: LocalDateTime, endDate: LocalDateTime): Long?
 }

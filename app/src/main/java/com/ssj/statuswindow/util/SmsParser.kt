@@ -28,7 +28,7 @@ object SmsParser {
     // 현재 선택된 국가 코드
     private var currentCountryCode: String = "KR" // 기본값: 한국
     
-    // 기존 정규식 패턴 (백업용)
+    // 기존 정규식 패턴 (백업용) - 수정된 버전
     private val SMS_PATTERN = Pattern.compile(
         "([가-힣]+카드)\\((\\d+)\\)(승인|취소)\\s+([가-힣*]+)\\s+(\\d{1,3}(?:,\\d{3})*)원\\((일시불|\\d+개월)\\)(\\d{1,2}/\\d{1,2}\\s*\\d{1,2}:\\d{2})\\s+([가-힣\\s]+)\\s+누적(\\d{1,3}(?:,\\d{3})*)(?:원)?"
     )
@@ -99,36 +99,30 @@ object SmsParser {
         val transactions = mutableListOf<CardTransaction>()
         val lines = smsText.trim().split("\n")
         
+        // 기존 거래 내역 초기화 (테스트용)
+        existingTransactions.clear()
+        
         for (line in lines) {
             if (line.isBlank()) continue
             
             try {
-                // 1. 현재 국가의 AI 엔진으로 파싱 시도
-                val currentEngine = AiEngineFactory.getEngine(currentCountryCode)
-                var transaction: CardTransaction? = null
+                // 1. 먼저 정규식으로 파싱 시도 (더 안정적)
+                var transaction: CardTransaction? = parseSingleSmsFallback(line)
                 
-                if (currentEngine != null) {
-                    transaction = currentEngine.extractCardTransaction(line)
+                // 2. 정규식이 실패한 경우 AI 엔진으로 시도
+                if (transaction == null) {
+                    val currentEngine = AiEngineFactory.getEngine(currentCountryCode)
+                    if (currentEngine != null) {
+                        transaction = currentEngine.extractCardTransaction(line)
+                    }
                 }
                 
-                // 2. 현재 엔진이 실패한 경우 자동 감지된 최적 엔진으로 시도
+                // 3. 현재 엔진이 실패한 경우 자동 감지된 최적 엔진으로 시도
                 if (transaction == null) {
                     val bestEngine = AiEngineFactory.detectBestEngine(line)
                     if (bestEngine != null) {
                         transaction = bestEngine.extractCardTransaction(line)
-                        
-                        // 다른 국가의 엔진이 더 적합한 경우 현재 국가 업데이트
-                        if (transaction != null && bestEngine.getCountryCode() != currentCountryCode) {
-                            Log.d(TAG, "Better engine detected: ${bestEngine.getCountryCode()} for SMS: $line")
-                            // 필요시 현재 국가 코드 업데이트
-                            // setCountryCode(bestEngine.getCountryCode())
-                        }
                     }
-                }
-                
-                // 3. AI 엔진이 모두 실패한 경우 기존 정규식으로 백업 시도
-                if (transaction == null) {
-                    transaction = parseSingleSmsFallback(line)
                 }
                 
                 // 4. 중복 검사 후 추가
@@ -378,15 +372,24 @@ object SmsParser {
         val timeThreshold = java.time.Duration.ofMinutes(duplicateDetectionMinutes.toLong())
         
         return existingTransactions.any { existing ->
-            // 같은 카드, 같은 금액, 같은 가맹점인지 확인
+            // 더 엄격한 중복 검사 조건
             val isSameTransaction = existing.cardNumber == newTransaction.cardNumber &&
                     existing.amount == newTransaction.amount &&
-                    existing.merchant == newTransaction.merchant
+                    existing.merchant == newTransaction.merchant &&
+                    existing.transactionType == newTransaction.transactionType && // 승인/취소 구분
+                    existing.installment == newTransaction.installment && // 할부 조건도 추가
+                    existing.transactionDate.toLocalDate() == newTransaction.transactionDate.toLocalDate()
             
             if (isSameTransaction) {
                 // 시간 차이 확인 (기본 5분 이내)
                 val timeDifference = java.time.Duration.between(existing.transactionDate, currentTime)
-                timeDifference <= timeThreshold
+                val isWithinTimeThreshold = timeDifference <= timeThreshold
+                
+                if (isWithinTimeThreshold) {
+                    Log.d(TAG, "중복 거래 감지: ${newTransaction.merchant} - ${newTransaction.amount}원 (${newTransaction.transactionType})")
+                }
+                
+                isWithinTimeThreshold
             } else {
                 false
             }
@@ -400,6 +403,107 @@ object SmsParser {
         existingTransactions.clear()
     }
     
+    /**
+     * SMS 텍스트에서 소득 정보를 추출 (입금 거래만)
+     */
+    fun parseIncomeFromSms(smsText: String): List<com.ssj.statuswindow.database.entity.BankTransactionEntity> {
+        val incomeTransactions = mutableListOf<com.ssj.statuswindow.database.entity.BankTransactionEntity>()
+        val lines = smsText.trim().split("\n")
+        
+        for (line in lines) {
+            if (line.isBlank()) continue
+            
+            Log.d(TAG, "소득 파싱 시도: $line")
+            
+            try {
+                // 소득 패턴 매칭 (입금 관련 SMS) - 수정된 패턴
+                val incomePattern = Regex("""(\w+)\s+(\d{2}/\d{2})\s+(\d{2}:\d{2})\s+(\d{3}-\*\*\*-\d{6})\s+(입금)\s+([\d,]+)\s+잔액\s+([\d,]+)\s+(.+)""")
+                val matchResult = incomePattern.find(line)
+                
+                if (matchResult != null) {
+                    Log.d(TAG, "소득 패턴 매칭 성공!")
+                    val bankName = matchResult.groupValues[1] // 신한
+                    val dateStr = matchResult.groupValues[2] // 09/21
+                    val timeStr = matchResult.groupValues[3] // 16:30
+                    val accountNumber = matchResult.groupValues[4] // 100-***-159993
+                    val transactionType = matchResult.groupValues[5] // 입금
+                    val amountStr = matchResult.groupValues[6] // 200,000
+                    val balanceStr = matchResult.groupValues[7] // 2,910,000
+                    val description = matchResult.groupValues[8] // 부업수입
+                    
+                    // 금액에서 콤마 제거
+                    val amount = amountStr.replace(",", "").toLong()
+                    val balance = balanceStr.replace(",", "").toLong()
+                    
+                    // 현재 날짜와 시간으로 설정
+                    val now = LocalDateTime.now()
+                    val currentYear = now.year
+                    
+                    // 날짜 파싱 (MM/dd 형식)
+                    val dateParts = dateStr.split("/")
+                    val month = dateParts[0].toInt()
+                    val day = dateParts[1].toInt()
+                    
+                    // 시간 파싱 (HH:mm 형식)
+                    val timeParts = timeStr.split(":")
+                    val hour = timeParts[0].toInt()
+                    val minute = timeParts[1].toInt()
+                    
+                    val transactionDateTime = LocalDateTime.of(currentYear, month, day, hour, minute)
+                    
+                    val bankTransaction = com.ssj.statuswindow.database.entity.BankTransactionEntity(
+                        bankName = bankName,
+                        accountNumber = accountNumber,
+                        accountType = "입출금", // 기본값
+                        transactionType = transactionType,
+                        amount = amount,
+                        balance = balance,
+                        description = description,
+                        transactionDate = transactionDateTime,
+                        memo = inferIncomeCategory(description), // 카테고리를 메모에 저장
+                        originalText = line,
+                        createdAt = LocalDateTime.now(),
+                        updatedAt = LocalDateTime.now()
+                    )
+                    
+                    incomeTransactions.add(bankTransaction)
+                    Log.d(TAG, "소득 파싱 성공: $description - ${amount}원")
+                }
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing income SMS line: $line", e)
+            }
+        }
+        
+        return incomeTransactions
+    }
+    
+    /**
+     * 소득 카테고리 추론
+     */
+    private fun inferIncomeCategory(description: String): String {
+        val categoryMap = mapOf(
+            "급여" to "급여",
+            "월급" to "급여", 
+            "연봉" to "급여",
+            "보너스" to "보너스",
+            "상여" to "보너스",
+            "수당" to "수당",
+            "부업" to "부업수입",
+            "알바" to "부업수입",
+            "사업" to "사업수입",
+            "투자" to "투자수익",
+            "배당" to "투자수익",
+            "환급" to "환급",
+            "환불" to "환급",
+            "보상" to "기타수입"
+        )
+        
+        return categoryMap.entries.find { (keyword, _) ->
+            description.contains(keyword)
+        }?.value ?: "기타수입"
+    }
+
     /**
      * 기존 호환성을 위한 parse 메서드 (CardEvent 반환)
      */

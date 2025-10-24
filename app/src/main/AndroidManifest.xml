@@ -44,21 +44,23 @@
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
-            <activity
-                android:name=".ui.CardEventActivity"
-                android:exported="false"
-                android:screenOrientation="portrait"
-                android:configChanges="orientation|keyboardHidden|screenSize" />
-            <activity
-                android:name=".ui.IncomeDetailActivity"
-                android:exported="false"
-                android:screenOrientation="portrait"
-                android:configChanges="orientation|keyboardHidden|screenSize" />
-            <activity
-                android:name=".ui.AssetManagementActivity"
-                android:exported="false"
-                android:screenOrientation="portrait"
-                android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity
+            android:name=".ui.CardEventActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+            
+        <activity
+            android:name=".ui.IncomeDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+            
+        <activity
+            android:name=".ui.AssetManagementActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
         
         <activity
             android:name=".ui.SettingsActivity"
@@ -74,6 +76,24 @@
         
         <activity
             android:name=".ui.SmsDataTestActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+            
+        <activity
+            android:name=".ui.CardDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.BankTransactionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.IncomeDetailsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />

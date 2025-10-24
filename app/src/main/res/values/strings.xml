@@ -1,80 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 앱 기본 정보 -->
     <string name="app_name">StatusWindow</string>
-
-    <!-- RPG HUD 타이틀 -->
-    <string name="title_life_rpg_hud">현실을 플레이한다</string>
+    <string name="app_description">온디바이스 은퇴관리 알림분석 앱</string>
     
-    <!-- 스탯 이름 -->
-    <string name="stat_wealth">재력</string>
-    <string name="stat_vital">체력</string>
-    <string name="stat_cognition">사고력</string>
-    <string name="stat_balance">균형</string>
+    <!-- 네비게이션 드로어 -->
+    <string name="nav_drawer_open">네비게이션 열기</string>
+    <string name="nav_drawer_close">네비게이션 닫기</string>
+    <string name="nav_income_detail">수입 상세</string>
+    <string name="nav_sms_data_test">SMS 데이터 테스트</string>
     
-    <!-- 섹션 타이틀 -->
-    <string name="title_buffs_debuffs">버프/디버프</string>
-    <string name="title_live_feed">라이브 피드</string>
-    <string name="title_coaching_suggestions">코칭 제안</string>
-    <string name="title_settings">설정</string>
+    <!-- 메시지 -->
+    <string name="msg_imported_n">%d건의 거래가 가져와졌습니다</string>
+    <string name="msg_no_parsable">파싱 가능한 거래가 없습니다</string>
     
-    <!-- 버프/디버프 관련 -->
-    <string name="buff_active">활성 버프</string>
-    <string name="debuff_active">활성 디버프</string>
-    <string name="modifier_expires_in">%1$s 남음</string>
+    <!-- 알림 상태 -->
+    <string name="notify_on">알림 켜짐</string>
     
-    <!-- 코칭 제안 관련 -->
-    <string name="suggestion_title_format">%1$s</string>
-    <string name="suggestion_option_format">• %1$s</string>
-    
-    <!-- 기존 문자열들 -->
-    <string name="title_card_events">카드 내역</string>
-    <string name="total_amount_default">총액: 0</string>
-    <string name="total_amount_fmt">총액: %,d</string>
-    <string name="notify_on">알림접근 ON</string>
-    <string name="notify_off">알림접근 OFF</string>
-    <string name="action_open_settings">권한설정</string>
-    <string name="action_add">추가</string>
+    <!-- SMS 붙여넣기 -->
     <string name="title_paste_sms">SMS 붙여넣기</string>
     <string name="action_import">가져오기</string>
-    <string name="hint_paste_sms">여러 줄의 결제 알림/SMS를 붙여넣으세요</string>
-    <string name="msg_no_parsable">가져올 항목이 없습니다</string>
-    <string name="msg_imported_n">%1$d건을 가져왔습니다</string>
-    <string name="empty_list">표시할 카드 내역이 없습니다</string>
-
-    <!-- Navigation / drawer -->
-    <string name="menu_card_events">카드 내역</string>
-    <string name="menu_notification_log">알림 로그</string>
-    <string name="menu_export_sheets">Google 시트로 공유</string>
-    <string name="nav_drawer_open">메뉴 열기</string>
-    <string name="nav_drawer_close">메뉴 닫기</string>
-
-    <!-- Notification log -->
-    <string name="title_notification_log">알림 히스토리</string>
-    <string name="notification_log_empty">수집된 알림이 없습니다</string>
-
-    <!-- Google Sheets export -->
-    <string name="title_export_to_sheets">Google 시트로 내보내기</string>
-    <string name="label_sheet_url">Apps Script URL</string>
+    
+    <!-- 시트 내보내기 -->
+    <string name="default_sheet_name">StatusWindow_Data</string>
+    <string name="title_export_to_sheets">Google Sheets로 내보내기</string>
+    <string name="msg_export_requires_url">스크립트 URL이 필요합니다</string>
+    <string name="msg_export_progress">내보내는 중...</string>
+    <string name="msg_export_empty">내보낼 데이터가 없습니다</string>
+    <string name="msg_export_success">%d건이 성공적으로 내보내졌습니다</string>
+    <string name="msg_export_failure_unknown">알 수 없는 오류가 발생했습니다</string>
+    <string name="msg_export_failure">내보내기 실패: %s</string>
+    
+    <!-- 메인 메뉴 -->
+    <string name="menu_dashboard">대시보드</string>
+    <string name="menu_timeline">알림 타임라인</string>
+    <string name="menu_card_events">카드 거래 내역</string>
+    <string name="menu_income_detail">수입 상세내역</string>
+    <string name="menu_asset_management">자산 관리</string>
+    <string name="menu_settings">설정</string>
+    
+    <!-- 대시보드 -->
+    <string name="dashboard_title">대시보드</string>
+    <string name="retirement_asset_title">💰 은퇴 시 총자산</string>
+    <string name="monthly_spending">이달 소비금액</string>
+    <string name="monthly_income">이달 소득금액</string>
+    <string name="recent_transactions">최근 거래 내역</string>
+    <string name="category_analysis">카테고리별 소비 분석</string>
+    
+    <!-- 애니메이션 메시지 -->
+    <string name="spending_event_title">💸 소비 발생!</string>
+    <string name="spending_event_message">은퇴자산이 감소했습니다</string>
+    <string name="retirement_age_impact">이번 지출로 은퇴가능연령이</string>
+    <string name="retirement_age_delayed">늦어졌어요</string>
+    <string name="retirement_age_advanced">빨라졌어요</string>
+    
+    <!-- 타임라인 -->
+    <string name="timeline_title">알림 타임라인</string>
+    <string name="timeline_search_hint">알림 내용 검색...</string>
+    <string name="timeline_filter_all">전체</string>
+    <string name="timeline_filter_success">성공</string>
+    <string name="timeline_filter_partial">부분 성공</string>
+    <string name="timeline_filter_failed">실패</string>
+    <string name="timeline_filter_duplicate">중복</string>
+    <string name="timeline_filter_ignored">무시됨</string>
+    
+    <!-- 처리 상태 -->
+    <string name="status_success">성공</string>
+    <string name="status_partial_success">부분 성공</string>
+    <string name="status_failed">실패</string>
+    <string name="status_duplicate">중복</string>
+    <string name="status_ignored">무시됨</string>
+    
+    <!-- 신뢰도 -->
+    <string name="confidence_score">신뢰도</string>
+    <string name="extracted_data">추출된 데이터</string>
+    <string name="no_extracted_data">추출된 데이터 없음</string>
+    <string name="error_message">오류</string>
+    
+    <!-- 온라인 업데이트 -->
+    <string name="online_update_title">온라인 업데이트 설정</string>
+    <string name="online_update_enable">온라인 업데이트</string>
+    <string name="online_update_description">주택공시가격, 주식가격, 환율 등 최신 데이터 자동 업데이트</string>
+    <string name="update_types_title">업데이트할 데이터</string>
+    <string name="update_real_estate">주택공시가격</string>
+    <string name="update_stocks">주식 현재가</string>
+    <string name="update_exchange_rates">환율 정보</string>
+    <string name="update_frequency_title">업데이트 빈도</string>
+    <string name="update_hourly">1시간마다</string>
+    <string name="update_daily">1일마다</string>
+    <string name="update_weekly">1주일마다</string>
+    <string name="update_manual">수동 업데이트만</string>
+    <string name="network_settings_title">네트워크 설정</string>
+    <string name="wifi_only">Wi-Fi에서만 업데이트</string>
+    <string name="battery_optimized">배터리 최적화</string>
+    <string name="manual_update_title">수동 업데이트</string>
+    <string name="manual_update_button">지금 업데이트</string>
+    <string name="manual_update_progress">업데이트 중...</string>
+    <string name="cache_status_title">캐시 상태</string>
+    <string name="last_update_time">마지막 업데이트</string>
+    <string name="cache_expired">만료됨</string>
+    <string name="cache_valid">유효함</string>
+    
+    <!-- 개인정보 보호 -->
+    <string name="privacy_title">🔒 개인정보 보호</string>
+    <string name="privacy_description">• 모든 데이터는 로컬에만 저장됩니다\n• 개인 거래 내역은 외부로 전송되지 않습니다\n• 공개 데이터(주가, 환율 등)만 업데이트됩니다</string>
+    
+    <!-- 언어 설정 -->
+    <string name="language_settings_title">언어 설정</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_english">English</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_french">Français</string>
+    <string name="language_german">Deutsch</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_russian">Русский</string>
+    
+    <!-- 국가 설정 -->
+    <string name="country_settings_title">국가 설정</string>
+    <string name="country_korea">대한민국</string>
+    <string name="country_usa">United States</string>
+    <string name="country_japan">日本</string>
+    <string name="country_china">中国</string>
+    <string name="country_spain">España</string>
+    <string name="country_france">France</string>
+    <string name="country_germany">Deutschland</string>
+    <string name="country_italy">Italia</string>
+    <string name="country_brazil">Brasil</string>
+    <string name="country_russia">Россия</string>
+    
+    <!-- 접근성 -->
+    <string name="accessibility_title">접근성 설정</string>
+    <string name="high_contrast">고대비 모드</string>
+    <string name="reduce_animation">애니메이션 감소</string>
+    <string name="large_font">큰 폰트</string>
+    <string name="color_blind_mode">색맹 모드</string>
+    <string name="motion_sensitivity">모션 민감도</string>
+    
+    <!-- 카테고리 -->
+    <string name="category_food">식비</string>
+    <string name="category_transport">교통비</string>
+    <string name="category_shopping">쇼핑</string>
+    <string name="category_entertainment">오락</string>
+    <string name="category_healthcare">의료비</string>
+    <string name="category_education">교육비</string>
+    <string name="category_housing">주거비</string>
+    <string name="category_utilities">공과금</string>
+    
+    <!-- 버튼 -->
+    <string name="button_ok">확인</string>
+    <string name="button_cancel">취소</string>
+    <string name="button_save">저장</string>
+    <string name="button_delete">삭제</string>
+    <string name="button_edit">편집</string>
+    <string name="button_back">뒤로</string>
+    <string name="button_next">다음</string>
+    <string name="button_previous">이전</string>
+    <string name="button_refresh">새로고침</string>
+    <string name="button_export">내보내기</string>
+    <string name="button_import">가져오기</string>
+    
+    <!-- 오류 메시지 -->
+    <string name="error_network">네트워크 연결을 확인해주세요</string>
+    <string name="error_permission">권한이 필요합니다</string>
+    <string name="error_data_not_found">데이터를 찾을 수 없습니다</string>
+    <string name="error_invalid_input">잘못된 입력입니다</string>
+    <string name="error_unknown">알 수 없는 오류가 발생했습니다</string>
+    
+    <!-- 성공 메시지 -->
+    <string name="success_saved">저장되었습니다</string>
+    <string name="success_updated">업데이트되었습니다</string>
+    <string name="success_deleted">삭제되었습니다</string>
+    <string name="success_exported">내보내기가 완료되었습니다</string>
+    
+    <!-- 기존 앱 리소스 (호환성) -->
+    <string name="title_life_rpg_hud">생활 RPG HUD</string>
+    <string name="stat_wealth">부</string>
+    <string name="stat_vital">체력</string>
+    <string name="stat_cognition">인지</string>
+    <string name="stat_balance">균형</string>
+    <string name="title_settings">설정</string>
+    <string name="notify_off">알림 꺼짐</string>
+    <string name="action_open_settings">설정 열기</string>
+    <string name="action_add">추가</string>
+    <string name="title_notification_log">알림 로그</string>
+    <string name="notification_log_empty">알림 로그가 비어있습니다</string>
+    <string name="label_sheet_url">시트 URL</string>
+    <string name="hint_sheet_url">Google Sheets URL을 입력하세요</string>
     <string name="label_sheet_name">시트 이름</string>
-    <string name="hint_sheet_url">https://script.google.com/... (웹 앱 URL)</string>
-    <string name="hint_sheet_name">예: NotificationLog</string>
-    <string name="msg_export_progress">Google 시트로 내보내는 중…</string>
-    <string name="msg_export_success">%1$d건의 알림을 Google 시트로 보냈습니다</string>
-    <string name="msg_export_failure">내보내기에 실패했습니다: %1$s</string>
-    <string name="msg_export_failure_unknown">알 수 없는 오류</string>
-    <string name="msg_export_requires_url">Apps Script URL을 입력해주세요</string>
-    <string name="msg_export_empty">내보낼 알림이 없습니다</string>
-    <string name="default_sheet_name">Notifications</string>
-
-    <!-- Application categories -->
-    <string name="category_app_unknown">분류되지 않음</string>
+    <string name="hint_sheet_name">시트 이름을 입력하세요</string>
+    <string name="hint_paste_sms">SMS 내용을 붙여넣으세요</string>
+    <string name="menu_notification_log">알림 로그</string>
+    <string name="menu_export_sheets">시트 내보내기</string>
+    
+    <!-- 앱 카테고리 -->
     <string name="category_app_audio">오디오</string>
     <string name="category_app_game">게임</string>
-    <string name="category_app_image">이미지/사진</string>
-    <string name="category_app_maps">지도/내비</string>
+    <string name="category_app_image">이미지</string>
+    <string name="category_app_maps">지도</string>
     <string name="category_app_news">뉴스</string>
     <string name="category_app_productivity">생산성</string>
     <string name="category_app_social">소셜</string>
     <string name="category_app_video">비디오</string>
     <string name="category_app_other">기타</string>
+    <string name="category_app_unknown">알 수 없음</string>
 </resources>
-

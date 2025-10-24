@@ -2,25 +2,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="대시보드" />
+        <item
             android:id="@+id/nav_card_events"
             android:icon="@android:drawable/ic_menu_view"
             android:title="@string/menu_card_events" />
-        <item
-            android:id="@+id/nav_income_detail"
-            android:icon="@android:drawable/ic_menu_add"
-            android:title="수입 상세내역" />
         <item
             android:id="@+id/nav_asset_management"
             android:icon="@android:drawable/ic_menu_manage"
             android:title="자산 관리" />
         <item
+            android:id="@+id/nav_timeline"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="알림 타임라인" />
+        <item
             android:id="@+id/nav_notification_log"
             android:icon="@android:drawable/ic_menu_recent_history"
             android:title="@string/menu_notification_log" />
-        <item
-            android:id="@+id/nav_sms_data_test"
-            android:icon="@android:drawable/ic_menu_edit"
-            android:title="SMS 데이터 테스트" />
     </group>
     <item
         android:id="@+id/nav_export_sheets"
