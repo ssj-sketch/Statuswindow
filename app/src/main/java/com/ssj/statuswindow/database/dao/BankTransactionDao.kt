@@ -44,6 +44,9 @@ interface BankTransactionDao {
     @Query("SELECT * FROM bank_transaction WHERE transactionDate BETWEEN :startDate AND :endDate ORDER BY transactionDate DESC")
     fun getBankTransactionsByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Flow<List<BankTransactionEntity>>
     
+    @Query("SELECT * FROM bank_transaction WHERE transactionDate BETWEEN :startDate AND :endDate ORDER BY transactionDate DESC")
+    suspend fun getBankTransactionsByDateRangeList(startDate: LocalDateTime, endDate: LocalDateTime): List<BankTransactionEntity>
+    
     @Query("SELECT * FROM bank_transaction WHERE description = :description ORDER BY transactionDate DESC")
     fun getBankTransactionsByDescription(description: String): Flow<List<BankTransactionEntity>>
     
@@ -69,4 +72,17 @@ interface BankTransactionDao {
     // 총 금액 조회 (입금만)
     @Query("SELECT SUM(amount) FROM bank_transaction WHERE transactionType = '입금' AND transactionDate BETWEEN :startDate AND :endDate")
     suspend fun getTotalAmountByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Long?
+    
+    @Query("SELECT COUNT(*) FROM bank_transaction WHERE transactionDate BETWEEN :startDate AND :endDate")
+    suspend fun getTransactionCountByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Int
+    
+    @Query("SELECT SUM(amount) FROM bank_transaction WHERE transactionType = '입금'")
+    suspend fun getTotalAmount(): Long?
+    
+    @Query("SELECT COUNT(*) FROM bank_transaction WHERE transactionType = '입금'")
+    suspend fun getTotalTransactionCount(): Int
+    
+    // 중복 체크 메서드 추가
+    @Query("SELECT COUNT(*) FROM bank_transaction WHERE accountNumber = :accountNumber AND amount = :amount AND transactionDate = :transactionDate AND transactionType = :transactionType")
+    suspend fun checkDuplicateBankTransaction(accountNumber: String, amount: Long, transactionDate: LocalDateTime, transactionType: String): Int
 }

@@ -46,4 +46,8 @@ interface SmsProcessingLogDao {
     
     @Query("SELECT COUNT(*) FROM sms_processing_logs WHERE processingStatus = :status")
     suspend fun getSmsProcessingLogCountByStatus(status: String): Int
+    
+    // 중복 체크 메서드 추가
+    @Query("SELECT * FROM sms_processing_logs WHERE inputSms = :inputSms LIMIT 1")
+    suspend fun getSmsProcessingLogByInputSms(inputSms: String): SmsProcessingLogEntity?
 }

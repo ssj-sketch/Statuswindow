@@ -20,6 +20,7 @@
     <!-- 배경 색상 -->
     <color name="background_light">#FAFAFA</color>
     <color name="background_card">#FFFFFF</color>
+    <color name="light_gray">#F5F5F5</color>
     
     <!-- 앱별 색상들 -->
     <color name="buff_color">#FF9800</color>

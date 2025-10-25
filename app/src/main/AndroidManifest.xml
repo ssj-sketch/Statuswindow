@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
-        android:name=".StatusWindowApplication"
+        android:name=".StatusWindowApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -82,19 +82,43 @@
             
         <activity
             android:name=".ui.CardDetailsActivity"
-            android:exported="false"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
             android:name=".ui.BankTransactionActivity"
-            android:exported="false"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.BankTransactionTableActivity"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
             android:name=".ui.IncomeDetailsActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.CardTableActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.ButtonTestActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
+            android:name=".ui.RealTimeLogActivity"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 

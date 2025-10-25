@@ -15,7 +15,7 @@ class CardTransactionRepository(private val database: StatusWindowDatabase) {
     /**
      * 모든 카드 거래 내역 조회
      */
-    fun getAllCardTransactions(): Flow<List<CardTransactionEntity>> {
+    suspend fun getAllCardTransactions(): List<CardTransactionEntity> {
         return cardTransactionDao.getAllCardTransactions()
     }
     
@@ -36,7 +36,7 @@ class CardTransactionRepository(private val database: StatusWindowDatabase) {
     /**
      * 날짜 범위별 거래 내역 조회
      */
-    fun getCardTransactionsByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Flow<List<CardTransactionEntity>> {
+    suspend fun getCardTransactionsByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): List<CardTransactionEntity> {
         return cardTransactionDao.getCardTransactionsByDateRange(startDate, endDate)
     }
     

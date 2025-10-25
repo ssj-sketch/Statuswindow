@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
@@ -16,47 +17,74 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/success_color"
+            android:background="@color/primary_color"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:title="💳 카드테이블"
-            app:titleTextColor="@android:color/white" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-        <!-- 메인 콘텐츠 -->
+        <!-- 조회기간 및 요약 정보 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@color/light_gray">
 
-            <!-- 요약 정보 -->
+            <!-- 조회기간 선택 -->
+            <Spinner
+                android:id="@+id/spinnerPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:minWidth="120dp" />
+
+            <!-- 총 건수 표시 -->
             <TextView
-                android:id="@+id/tvSummary"
-                android:layout_width="match_parent"
+                android:id="@+id/tvTotalCount"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="📊 카드테이블 요약\n\n총 카드사용: 0건\n총 사용금액: 0원\n총 청구금액: 0원"
-                android:textSize="14sp"
-                android:layout_marginBottom="16dp"
-                android:background="#F5F5F5"
-                android:padding="12dp" />
+                android:layout_weight="1"
+                android:text="총 0건"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_color"
+                android:gravity="center_vertical" />
 
-            <!-- 전체 삭제 버튼 -->
+            <!-- 엑셀 출력 버튼 -->
             <Button
-                android:id="@+id/btnDeleteAll"
-                android:layout_width="match_parent"
+                android:id="@+id/btnExportExcel"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="전체 삭제"
+                android:text="엑셀출력"
                 android:textSize="14sp"
-                android:backgroundTint="@android:color/holo_red_light"
-                android:layout_marginBottom="16dp" />
-
-            <!-- 카드테이블 리스트 -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:backgroundTint="@color/secondary_color"
+                android:textColor="@android:color/white" />
 
         </LinearLayout>
+
+        <!-- 엑셀 형태 그리드뷰 -->
+        <HorizontalScrollView
+            android:id="@+id/horizontalScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/white">
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/white">
+
+                <TableLayout
+                    android:id="@+id/tableLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:stretchColumns="*"
+                    android:shrinkColumns="*"
+                    android:background="@android:color/white" />
+
+            </ScrollView>
+
+        </HorizontalScrollView>
 
     </LinearLayout>
 
@@ -66,6 +94,7 @@
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="@android:color/white"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/nav_menu" />
 

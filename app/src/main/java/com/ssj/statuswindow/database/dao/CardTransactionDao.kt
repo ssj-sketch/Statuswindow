@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 interface CardTransactionDao {
     
     @Query("SELECT * FROM card_transactions ORDER BY transactionDate DESC")
-    fun getAllCardTransactions(): Flow<List<CardTransactionEntity>>
+    suspend fun getAllCardTransactions(): List<CardTransactionEntity>
     
     @Query("SELECT * FROM card_transactions WHERE id = :id")
     suspend fun getCardTransactionById(id: Long): CardTransactionEntity?
@@ -21,7 +21,7 @@ interface CardTransactionDao {
     fun getCardTransactionsByCardType(cardType: String): Flow<List<CardTransactionEntity>>
     
     @Query("SELECT * FROM card_transactions WHERE transactionDate BETWEEN :startDate AND :endDate ORDER BY transactionDate DESC")
-    fun getCardTransactionsByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Flow<List<CardTransactionEntity>>
+    suspend fun getCardTransactionsByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): List<CardTransactionEntity>
     
     @Query("SELECT SUM(amount) FROM card_transactions WHERE transactionDate BETWEEN :startDate AND :endDate")
     suspend fun getTotalAmountByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Long?
@@ -46,6 +46,9 @@ interface CardTransactionDao {
 
     @Query("SELECT COUNT(*) FROM card_transactions")
     suspend fun getCardTransactionCount(): Int
+    
+    @Query("SELECT COUNT(*) FROM card_transactions WHERE transactionDate BETWEEN :startDate AND :endDate")
+    suspend fun getCardTransactionCountByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): Int
     
     /**
      * 이번달 청구금액 계산 (일시불 + 할부 첫달)
@@ -78,4 +81,8 @@ interface CardTransactionDao {
         WHERE transactionDate BETWEEN :startDate AND :endDate
     """)
     suspend fun getTotalCardUsageAmount(startDate: LocalDateTime, endDate: LocalDateTime): Long?
+    
+    // 중복 체크 메서드 추가
+    @Query("SELECT COUNT(*) FROM card_transactions WHERE cardNumber = :cardNumber AND amount = :amount AND merchant = :merchant AND transactionDate = :transactionDate")
+    suspend fun checkDuplicateCardTransaction(cardNumber: String, amount: Long, merchant: String, transactionDate: LocalDateTime): Int
 }

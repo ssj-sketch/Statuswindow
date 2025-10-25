@@ -77,9 +77,8 @@ class CardEventActivity : AppCompatActivity() {
                 // Room 데이터베이스에서 카드 거래 내역 조회
                 val cardTransactions = smsDataRepository.getCardTransactions()
                 
-                cardTransactions.collect { transactions ->
-                    // CardTransactionEntity를 CardTransaction으로 변환
-                    val cardTransactionList = transactions.map { entity ->
+                // CardTransactionEntity를 CardTransaction으로 변환
+                val cardTransactionList = cardTransactions.map { entity ->
                         CardTransaction(
                             cardType = entity.cardType,
                             cardNumber = entity.cardNumber,
@@ -94,9 +93,8 @@ class CardEventActivity : AppCompatActivity() {
                         )
                     }
                     
-                    cardTransactionAdapter.submitList(cardTransactionList)
-                    updateMonthlyTotal(cardTransactionList)
-                }
+                cardTransactionAdapter.submitList(cardTransactionList)
+                updateMonthlyTotal(cardTransactionList)
             } catch (e: Exception) {
                 android.util.Log.e("CardEventActivity", "카드 거래 내역 조회 오류: ${e.message}", e)
                 Toast.makeText(this@CardEventActivity, "카드 거래 내역 조회 오류: ${e.message}", Toast.LENGTH_SHORT).show()

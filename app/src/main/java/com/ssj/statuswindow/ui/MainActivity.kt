@@ -1,12 +1,18 @@
 package com.ssj.statuswindow.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 import com.ssj.statuswindow.R
 import com.ssj.statuswindow.util.SmsParser
@@ -15,6 +21,11 @@ import com.ssj.statuswindow.database.StatusWindowDatabase
 import com.ssj.statuswindow.database.entity.CardTransactionEntity
 import com.ssj.statuswindow.database.entity.CreditCardUsageEntity
 import com.ssj.statuswindow.service.MerchantCategoryAiService
+import com.ssj.statuswindow.repo.database.SmsDataRepository
+import com.ssj.statuswindow.ui.CardTableActivity
+import com.ssj.statuswindow.ui.BankTransactionTableActivity
+import com.ssj.statuswindow.ui.ButtonTestActivity
+import com.ssj.statuswindow.util.NavigationManager
 import java.text.NumberFormat
 import java.util.*
 import kotlinx.coroutines.*
@@ -23,15 +34,10 @@ import kotlinx.coroutines.*
  * StatusWindow - 점진적 기능 복원 버전
  */
 class MainActivity : AppCompatActivity() {
-    
+
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var toolbar: Toolbar
     private lateinit var navigationView: NavigationView
-    private lateinit var btnTestSms: Button
-    private lateinit var btnInputSms: Button
-    private lateinit var btnShowCreditCardTable: Button
-    private lateinit var btnViewDetails: Button
-    private lateinit var btnViewIncomeDetails: Button
     private lateinit var tvMonthlySpending: TextView
     private lateinit var tvMonthlyIncome: TextView
     private lateinit var tvIncomeChange: TextView
@@ -43,6 +49,16 @@ class MainActivity : AppCompatActivity() {
     private val transactions = mutableListOf<CardTransaction>()
     private lateinit var database: StatusWindowDatabase
     private lateinit var categoryAiService: MerchantCategoryAiService
+    
+    // 브로드캐스트 리시버
+    private val refreshReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.ssj.statuswindow.REFRESH_DASHBOARD") {
+                android.util.Log.d("MainActivity", "대시보드 새로고침 요청 수신")
+                refreshDashboardData()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,16 +69,29 @@ class MainActivity : AppCompatActivity() {
             // 데이터베이스 초기화
             database = StatusWindowDatabase.getDatabase(this)
             
-            // 카테고리 AI 서비스 초기화
-            categoryAiService = MerchantCategoryAiService(this)
+            // 카테고리 AI 서비스 초기화 (안전하게 처리)
+            try {
+                categoryAiService = MerchantCategoryAiService(this)
+            } catch (e: Exception) {
+                Log.e("MainActivity", "카테고리 AI 서비스 초기화 실패: ${e.message}")
+                // AI 서비스 없이도 앱이 동작하도록 처리
+            }
             
             // 앱 시작 시 기존 데이터 초기화 (선택사항)
             // clearAllData()
             
+            // 브로드캐스트 리시버 등록 (API 레벨에 따른 호환성 처리)
+            val filter = IntentFilter("com.ssj.statuswindow.REFRESH_DASHBOARD")
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(refreshReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("DEPRECATION")
+                registerReceiver(refreshReceiver, filter)
+            }
+            
             setupViews()
             setupToolbar()
             setupNavigation()
-            setupClickListeners()
             
             // 앱 시작 시 기존 데이터로 대시보드 초기화
             loadDashboardData()
@@ -80,11 +109,6 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         toolbar = findViewById(R.id.toolbar)
         navigationView = findViewById(R.id.navigationView)
-        btnTestSms = findViewById(R.id.btnTestSms)
-        btnInputSms = findViewById(R.id.btnInputSms)
-        btnShowCreditCardTable = findViewById(R.id.btnShowCreditCardTable)
-        btnViewDetails = findViewById(R.id.btnViewDetails)
-        btnViewIncomeDetails = findViewById(R.id.btnViewIncomeDetails)
         tvMonthlySpending = findViewById(R.id.tvMonthlySpending)
         tvMonthlyIncome = findViewById(R.id.tvMonthlyIncome)
         tvIncomeChange = findViewById(R.id.tvIncomeChange)
@@ -92,6 +116,71 @@ class MainActivity : AppCompatActivity() {
         progressSpending = findViewById(R.id.progressSpending)
         tvProgressPercent = findViewById(R.id.tvProgressPercent)
         tvSummary = findViewById(R.id.tvSummary)
+        
+        // 테스트 버튼들 설정
+        setupTestButtons()
+    }
+    
+    private fun setupTestButtons() {
+        // 카드 사용내역 테스트 버튼
+        findViewById<android.widget.Button>(R.id.btnTestCardDetails).setOnClickListener {
+            android.util.Log.d("MainActivity", "카드 사용내역 테스트 버튼 클릭")
+            try {
+                startActivity(Intent(this, CardDetailsActivity::class.java))
+                android.util.Log.d("MainActivity", "CardDetailsActivity 시작 성공")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "CardDetailsActivity 시작 실패: ${e.message}", e)
+                android.widget.Toast.makeText(this, "카드 사용내역 페이지를 열 수 없습니다: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // 입출금내역 테스트 버튼
+        findViewById<android.widget.Button>(R.id.btnTestBankDetails).setOnClickListener {
+            android.util.Log.d("MainActivity", "입출금내역 테스트 버튼 클릭")
+            try {
+                startActivity(Intent(this, BankTransactionActivity::class.java))
+                android.util.Log.d("MainActivity", "BankTransactionActivity 시작 성공")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "BankTransactionActivity 시작 실패: ${e.message}", e)
+                android.widget.Toast.makeText(this, "입출금내역 페이지를 열 수 없습니다: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // SMS 테스트 버튼
+        findViewById<android.widget.Button>(R.id.btnTestSmsData).setOnClickListener {
+            android.util.Log.d("MainActivity", "SMS 테스트 버튼 클릭")
+            try {
+                startActivity(Intent(this, SmsDataTestActivity::class.java))
+                android.util.Log.d("MainActivity", "SmsDataTestActivity 시작 성공")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "SmsDataTestActivity 시작 실패: ${e.message}", e)
+                android.widget.Toast.makeText(this, "SMS 테스트 페이지를 열 수 없습니다: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // 카드 테이블 테스트 버튼
+        findViewById<android.widget.Button>(R.id.btnTestCardTable).setOnClickListener {
+            android.util.Log.d("MainActivity", "카드 테이블 테스트 버튼 클릭")
+            try {
+                startActivity(Intent(this, CardTableActivity::class.java))
+                android.util.Log.d("MainActivity", "CardTableActivity 시작 성공")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "CardTableActivity 시작 실패: ${e.message}", e)
+                android.widget.Toast.makeText(this, "카드 테이블 페이지를 열 수 없습니다: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // 버튼 자동 테스트 버튼
+        findViewById<android.widget.Button>(R.id.btnButtonTest).setOnClickListener {
+            android.util.Log.d("MainActivity", "버튼 자동 테스트 버튼 클릭")
+            try {
+                startActivity(Intent(this, ButtonTestActivity::class.java))
+                android.util.Log.d("MainActivity", "ButtonTestActivity 시작 성공")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "ButtonTestActivity 시작 실패: ${e.message}", e)
+                android.widget.Toast.makeText(this, "버튼 테스트 페이지를 열 수 없습니다: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
     }
     
     private fun setupToolbar() {
@@ -101,138 +190,216 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupNavigation() {
-        navigationView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_dashboard -> {
-                    // 현재 페이지
-                    drawerLayout.closeDrawers()
-                    true
+        NavigationManager.setupNavigation(this, navigationView, drawerLayout, MainActivity::class.java)
+        NavigationManager.setActiveMenuItem(navigationView, MainActivity::class.java)
+    }
+    
+    /**
+     * 카드사용내역 테이블 표시
+     */
+    private fun showCardUsageTable() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                android.util.Log.d("MainActivity", "=== 카드사용내역 테이블 조회 시작 ===")
+                
+                val cardTransactionDao = database.cardTransactionDao()
+                val allCardTransactions = cardTransactionDao.getAllCardTransactions()
+                
+                withContext(Dispatchers.Main) {
+                    displayCardUsageTable(allCardTransactions)
                 }
-                R.id.nav_card_details -> {
-                    // 카드 상세페이지로 이동
-                    startActivity(Intent(this, CardDetailsActivity::class.java))
-                    drawerLayout.closeDrawers()
-                    true
+                
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "카드사용내역 테이블 조회 오류: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    tvSummary.text = "❌ 카드사용내역 테이블 조회 오류: ${e.message}"
                 }
-                R.id.nav_bank_transaction -> {
-                    // 입출금내역 페이지로 이동
-                    startActivity(Intent(this, BankTransactionActivity::class.java))
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_card_table -> {
-                    showCreditCardTable()
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_category_analysis -> {
-                    // 카테고리 분석 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_monthly_report -> {
-                    // 월별 리포트 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_settings -> {
-                    // 설정 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_about -> {
-                    // 앱 정보 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                else -> false
             }
         }
     }
     
-    private fun setupClickListeners() {
-        btnTestSms.setOnClickListener {
-            testSmsParsing()
-        }
-        
-        btnInputSms.setOnClickListener {
-            showSmsInputDialog()
-        }
-        
-        btnShowCreditCardTable.setOnClickListener {
-            showCreditCardTable()
-        }
-        
-        btnViewDetails.setOnClickListener {
-            startActivity(Intent(this, CardDetailsActivity::class.java))
-        }
-        
-        btnViewIncomeDetails.setOnClickListener {
-            // 소득 상세보기 페이지로 이동
-            startActivity(Intent(this, IncomeDetailsActivity::class.java))
+    /**
+     * 입출금내역 테이블 표시
+     */
+    private fun showBankTransactionTable() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                android.util.Log.d("MainActivity", "=== 입출금내역 테이블 조회 시작 ===")
+                
+                val bankTransactionDao = database.bankTransactionDao()
+                val allBankTransactions = bankTransactionDao.getAllBankTransactions()
+                
+                allBankTransactions.collect { bankList ->
+                    withContext(Dispatchers.Main) {
+                        displayBankTransactionTable(bankList)
+                    }
+                }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "입출금내역 테이블 조회 오류: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    tvSummary.text = "❌ 입출금내역 테이블 조회 오류: ${e.message}"
+                }
+            }
         }
     }
     
-    private fun testSmsParsing() {
-        try {
-            // 샘플테스트 전에 기존 데이터 확인
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    val cardTransactionDao = database.cardTransactionDao()
-                    val existingCount = cardTransactionDao.getCardTransactionCount()
-                    
-                    withContext(Dispatchers.Main) {
-                        if (existingCount > 0) {
-                            // 기존 데이터가 있으면 사용자에게 확인
-                            showTestDataConfirmationDialog()
-                        } else {
-                            // 기존 데이터가 없으면 바로 테스트 실행
-                            executeTestSmsParsing()
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        executeTestSmsParsing()
-                    }
-                }
+    /**
+     * 카드사용내역 테이블 데이터 표시
+     */
+    private fun displayCardUsageTable(cardList: List<CardTransactionEntity>) {
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("MM/dd HH:mm")
+        
+        val tableText = StringBuilder()
+        tableText.append("💳 카드사용내역 테이블\n")
+        tableText.append("=".repeat(50)).append("\n\n")
+        
+        if (cardList.isEmpty()) {
+            tableText.append("저장된 카드사용내역이 없습니다.\n")
+            tableText.append("테스트 데이터 관리에서 데이터를 입력해주세요.")
+        } else {
+            // 테이블 헤더
+            tableText.append("ID | 카드번호 | 거래타입 | 금액 | 할부 | 가맹점 | 거래일시\n")
+            tableText.append("-".repeat(80)).append("\n")
+            
+            // 테이블 데이터
+            cardList.forEach { card ->
+                tableText.append("${card.id} | ")
+                tableText.append("${card.cardNumber} | ")
+                tableText.append("${card.transactionType} | ")
+                tableText.append("${formatter.format(card.amount)}원 | ")
+                tableText.append("${card.installment} | ")
+                tableText.append("${card.merchant} | ")
+                tableText.append("${card.transactionDate.format(dateFormatter)}\n")
             }
             
-        } catch (e: Exception) {
-            e.printStackTrace()
-            updateSummary("❌ 오류 발생: ${e.message}")
+            // 통계 정보
+            tableText.append("\n📊 통계 정보\n")
+            tableText.append("-".repeat(30)).append("\n")
+            tableText.append("총 거래 건수: ${cardList.size}건\n")
+            
+            val totalAmount = cardList.sumOf { it.amount }
+            tableText.append("총 사용금액: ${formatter.format(totalAmount)}원\n")
+            
+            // 거래타입별 통계
+            val typeStats = cardList.groupBy { it.transactionType }
+            tableText.append("\n💳 거래타입별 통계\n")
+            tableText.append("-".repeat(30)).append("\n")
+            
+            typeStats.forEach { (type, transactions) ->
+                val typeTotalAmount = transactions.sumOf { it.amount }
+                tableText.append("${type}: ${transactions.size}건, ${formatter.format(typeTotalAmount)}원\n")
+            }
         }
+        
+        tvSummary.text = tableText.toString()
+        android.util.Log.d("MainActivity", "=== 카드사용내역 테이블 표시 완료 ===")
     }
     
-    private fun showTestDataConfirmationDialog() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("샘플 테스트 데이터")
-            .setMessage("기존 데이터가 있습니다.\n\n샘플 테스트를 실행하시겠습니까?\n\n- 기존 데이터 유지: 중복 검사 후 추가\n- 기존 데이터 삭제: 모든 데이터 초기화 후 테스트")
-            .setPositiveButton("기존 데이터 유지") { _, _ ->
-                executeTestSmsParsing()
+    /**
+     * 입출금내역 테이블 데이터 표시
+     */
+    private fun displayBankTransactionTable(bankList: List<com.ssj.statuswindow.database.entity.BankTransactionEntity>) {
+        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("MM/dd HH:mm")
+        
+        val tableText = StringBuilder()
+        tableText.append("🏦 입출금내역 테이블\n")
+        tableText.append("=".repeat(50)).append("\n\n")
+        
+        if (bankList.isEmpty()) {
+            tableText.append("저장된 입출금내역이 없습니다.\n")
+            tableText.append("테스트 데이터 관리에서 데이터를 입력해주세요.")
+        } else {
+            // 테이블 헤더
+            tableText.append("ID | 계좌번호 | 거래타입 | 금액 | 잔액 | 메모 | 거래일시\n")
+            tableText.append("-".repeat(80)).append("\n")
+            
+            // 테이블 데이터
+            bankList.forEach { bank ->
+                tableText.append("${bank.id} | ")
+                tableText.append("${bank.accountNumber} | ")
+                tableText.append("${bank.transactionType} | ")
+                tableText.append("${formatter.format(bank.amount)}원 | ")
+                tableText.append("${formatter.format(bank.balance)}원 | ")
+                tableText.append("${bank.memo} | ")
+                tableText.append("${bank.transactionDate.format(dateFormatter)}\n")
             }
-            .setNeutralButton("기존 데이터 삭제") { _, _ ->
-                clearAllDataAndTest()
+            
+            // 통계 정보
+            tableText.append("\n📊 통계 정보\n")
+            tableText.append("-".repeat(30)).append("\n")
+            tableText.append("총 거래 건수: ${bankList.size}건\n")
+            
+            val totalAmount = bankList.sumOf { it.amount }
+            tableText.append("총 거래금액: ${formatter.format(totalAmount)}원\n")
+            
+            // 거래타입별 통계
+            val typeStats = bankList.groupBy { it.transactionType }
+            tableText.append("\n🏦 거래타입별 통계\n")
+            tableText.append("-".repeat(30)).append("\n")
+            
+            typeStats.forEach { (type, transactions) ->
+                val typeTotalAmount = transactions.sumOf { it.amount }
+                tableText.append("${type}: ${transactions.size}건, ${formatter.format(typeTotalAmount)}원\n")
             }
-            .setNegativeButton("취소", null)
-            .show()
+        }
+        
+        tvSummary.text = tableText.toString()
+        android.util.Log.d("MainActivity", "=== 입출금내역 테이블 표시 완료 ===")
     }
+    
+    
     
     private fun clearAllDataAndTest() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                android.util.Log.d("MainActivity", "=== 데이터 삭제 시작 ===")
+                
+                // 모든 데이터 삭제 (강력한 삭제)
+                val cardTransactionDao = database.cardTransactionDao()
+                val creditCardUsageDao = database.creditCardUsageDao()
+                val bankTransactionDao = database.bankTransactionDao()
+                
+                // 삭제 전 개수 확인
+                val cardCountBefore = cardTransactionDao.getCardTransactionCount()
+                val creditCountBefore = creditCardUsageDao.getCreditCardUsageCount()
+                val bankCountBefore = bankTransactionDao.getBankTransactionCount()
+                
+                android.util.Log.d("MainActivity", "삭제 전 개수 - 카드: $cardCountBefore, 신용카드: $creditCountBefore, 은행: $bankCountBefore")
+                
                 // 모든 데이터 삭제
-                database.cardTransactionDao().deleteAllCardTransactions()
-                database.creditCardUsageDao().deleteAllCreditCardUsage()
-                database.bankTransactionDao().deleteAllBankTransactions()
+                cardTransactionDao.deleteAllCardTransactions()
+                creditCardUsageDao.deleteAllCreditCardUsage()
+                bankTransactionDao.deleteAllBankTransactions()
+                
+                // 삭제 후 개수 확인
+                val cardCountAfter = cardTransactionDao.getCardTransactionCount()
+                val creditCountAfter = creditCardUsageDao.getCreditCardUsageCount()
+                val bankCountAfter = bankTransactionDao.getBankTransactionCount()
+                
+                android.util.Log.d("MainActivity", "삭제 후 개수 - 카드: $cardCountAfter, 신용카드: $creditCountAfter, 은행: $bankCountAfter")
                 
                 withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(this@MainActivity, "기존 데이터가 삭제되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    // 메모리 기반 데이터 초기화
+                    transactions.clear()
+                    
+                    // UI 완전 초기화
+                    updateSummary("📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건\n소득 거래: 0건")
+                    updateDashboard(0L, 0L, 0L)
+                    updateIncomeDashboard(0L, 0L)
+                    
+                    val message = "기존 데이터가 삭제되었습니다.\n삭제된 데이터: 카드 ${cardCountBefore}건, 신용카드 ${creditCountBefore}건, 은행 ${bankCountBefore}건"
+                    android.widget.Toast.makeText(this@MainActivity, message, android.widget.Toast.LENGTH_LONG).show()
+                    
+                    android.util.Log.d("MainActivity", "=== 데이터 삭제 완료, 샘플 테스트 시작 ===")
                     executeTestSmsParsing()
                 }
                 
             } catch (e: Exception) {
                 e.printStackTrace()
+                android.util.Log.e("MainActivity", "데이터 삭제 오류: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     android.widget.Toast.makeText(this@MainActivity, "데이터 삭제 오류: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
                 }
@@ -265,12 +432,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun showSmsInputDialog() {
-        val dialog = SmsInputDialog(this) { smsText ->
-            parseSmsData(smsText)
-        }
-        dialog.show()
-    }
     
     private fun parseSmsData(smsText: String) {
         try {
@@ -308,7 +469,7 @@ class MainActivity : AppCompatActivity() {
                 // 기존 CardTransactionEntity 저장 (간단한 중복 검사)
                 val cardEntities = transactions.filter { transaction ->
                     // 간단한 중복 검사 - 원본 텍스트 기준
-                    val existingCount = cardTransactionDao.getCardTransactionCountByOriginalText(transaction.originalText)
+                    val existingCount = 0 // 임시로 중복 검사 비활성화
                     val isDuplicate = existingCount > 0
                     
                     if (isDuplicate) {
@@ -339,7 +500,7 @@ class MainActivity : AppCompatActivity() {
                 // 신용카드 사용내역만 별도 테이블에 저장 (간단한 중복 검사)
                 val creditCardEntities = transactions.filter { it.cardType.contains("카드") }.filter { transaction ->
                     // 신용카드 테이블에서도 중복 검사 - 원본 텍스트 기준
-                    val existingCount = creditCardUsageDao.getCreditCardUsageCountByOriginalText(transaction.originalText)
+                    val existingCount = 0 // 임시로 중복 검사 비활성화
                     val isDuplicate = existingCount > 0
                     
                     if (isDuplicate) {
@@ -364,8 +525,17 @@ class MainActivity : AppCompatActivity() {
                         else -> transaction.amount / installmentMonths
                     }
                     
-                    // AI로 카테고리 추론 (한국어 기본)
-                    val inferredCategory = categoryAiService.inferCategory(transaction.merchant, "ko")
+                    // AI로 카테고리 추론 (한국어 기본) - 안전하게 처리
+                    val inferredCategory = try {
+                        if (::categoryAiService.isInitialized) {
+                            categoryAiService.inferCategory(transaction.merchant, "ko")
+                        } else {
+                            "기타" // 기본값
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "카테고리 추론 실패: ${e.message}")
+                        "기타" // 기본값
+                    }
                     
                     // 청구년월 계산 (거래일 기준)
                     val billingYear = transaction.transactionDate.year
@@ -398,7 +568,7 @@ class MainActivity : AppCompatActivity() {
                 val bankTransactionDao = database.bankTransactionDao()
                 val filteredIncomeTransactions = incomeTransactions.filter { incomeTransaction ->
                     // 소득 데이터 중복 검사 - 원본 텍스트 기준
-                    val existingCount = bankTransactionDao.getBankTransactionCountByOriginalText(incomeTransaction.originalText)
+                    val existingCount = 0 // 임시로 중복 검사 비활성화
                     val isDuplicate = existingCount > 0
                     
                     if (isDuplicate) {
@@ -424,11 +594,14 @@ class MainActivity : AppCompatActivity() {
                     
                     val message = if (duplicateCount > 0 || duplicateIncomeCount > 0) {
                         "💾 DB 저장 완료: ${cardEntities.size}건 (카드: ${creditCardEntities.size}건, 소득: ${filteredIncomeTransactions.size}건)\n🚫 중복 차단: 카드 ${duplicateCount}건, 소득 ${duplicateIncomeCount}건"
-                    } else {
+                } else {
                         "💾 DB 저장 완료: ${cardEntities.size}건 (카드: ${creditCardEntities.size}건, 소득: ${filteredIncomeTransactions.size}건)"
                     }
                     
                     tvSummary.text = "$currentSummary\n\n$message"
+                    
+                    // DB 저장 후 대시보드 새로고침
+                    loadDashboardData()
                 }
                 
             } catch (e: Exception) {
@@ -468,6 +641,12 @@ class MainActivity : AppCompatActivity() {
                     val totalAmount = cardTransactionDao.getTotalCardUsageAmount(startOfMonth, endOfMonth) ?: 0L
                     val monthlyBillAmount = cardTransactionDao.getMonthlyBillAmount(startOfMonth, endOfMonth) ?: 0L
                     
+                    // 전월 카드 사용금액 조회
+                    val lastMonth = now.minusMonths(1)
+                    val startOfLastMonth = lastMonth.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                    val endOfLastMonth = lastMonth.withDayOfMonth(lastMonth.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
+                    val lastMonthCardAmount = cardTransactionDao.getTotalCardUsageAmount(startOfLastMonth, endOfLastMonth) ?: 0L
+                    
                             // 메인 스레드에서 UI 업데이트
                             withContext(Dispatchers.Main) {
                                 val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
@@ -475,9 +654,10 @@ class MainActivity : AppCompatActivity() {
                                 summary.append("이번달 청구금액: ${formatter.format(monthlyBillAmount)}원 (DB 쿼리)\n")
                                 summary.append("파싱된 거래 수: ${cardTransactions.size}건\n")
                                 
-                                // 소득 정보도 추가
-                                val totalIncome = incomeTransactions.sumOf { transaction -> transaction.amount }
-                                summary.append("소득 총액: ${formatter.format(totalIncome)}원\n\n")
+                                // 소득 정보도 DB에서 조회 (입금만)
+                                val bankTransactionDao = database.bankTransactionDao()
+                                val totalIncome = bankTransactionDao.getTotalDepositAmount(startOfMonth, endOfMonth) ?: 0L
+                                summary.append("소득 총액: ${formatter.format(totalIncome)}원 (입금만, DB 쿼리)\n\n")
                                 
                                 // 각 거래별 상세 정보 표시 (메모리 계산으로 비교)
                                 summary.append("=== 거래 상세 (메모리 계산) ===\n")
@@ -489,15 +669,14 @@ class MainActivity : AppCompatActivity() {
                                 tvSummary.text = summary.toString()
                                 
                                 // 대시보드 업데이트 추가 (DB에서 읽어온 값 사용)
-                                updateDashboard(monthlyBillAmount, totalAmount)
+                                updateDashboard(monthlyBillAmount, totalAmount, lastMonthCardAmount)
                                 
                                 // 소득금액도 업데이트 (입출금내역에서 입금만)
-                                val bankTransactionDao = database.bankTransactionDao()
-                                val currentMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfMonth, endOfMonth) ?: 0L
+                                val currentMonthIncome = totalIncome
                                 val lastMonth = java.time.LocalDateTime.now().minusMonths(1)
                                 val startOfLastMonth = lastMonth.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
                                 val endOfLastMonth = lastMonth.withDayOfMonth(lastMonth.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
-                                val lastMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfLastMonth, endOfLastMonth) ?: 0L
+                                val lastMonthIncome = bankTransactionDao.getTotalDepositAmount(startOfLastMonth, endOfLastMonth) ?: 0L
                                 updateIncomeDashboard(currentMonthIncome, lastMonthIncome)
                             }
                     
@@ -508,8 +687,8 @@ class MainActivity : AppCompatActivity() {
                         tvSummary.text = summary.toString()
                     }
                 }
-            }
-        } else {
+                }
+            } else {
             tvSummary.text = summary.toString()
         }
     }
@@ -521,143 +700,12 @@ class MainActivity : AppCompatActivity() {
     /**
      * 신용카드 테이블 표시
      */
-    private fun showCreditCardTable() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val creditCardUsageDao = database.creditCardUsageDao()
-                val allCreditCardUsage = creditCardUsageDao.getAllCreditCardUsage()
-                
-                // Flow를 collect하여 데이터 가져오기
-                allCreditCardUsage.collect { creditCardList ->
-                    withContext(Dispatchers.Main) {
-                        displayCreditCardTable(creditCardList)
-                    }
-                }
-                
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    tvSummary.text = "❌ 신용카드 테이블 조회 오류: ${e.message}"
-                }
-            }
-        }
-    }
     
     /**
      * 신용카드 테이블 데이터 표시
      */
-    private fun displayCreditCardTable(creditCardList: List<CreditCardUsageEntity>) {
-        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
-        val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("MM/dd HH:mm")
-        
-        val tableText = StringBuilder()
-        tableText.append("💳 신용카드 사용내역 테이블\n")
-        tableText.append("=".repeat(50)).append("\n\n")
-        
-        if (creditCardList.isEmpty()) {
-            tableText.append("저장된 신용카드 사용내역이 없습니다.\n")
-            tableText.append("먼저 '샘플 테스트' 또는 '직접 입력'을 실행해주세요.")
-        } else {
-            // 테이블 헤더
-            tableText.append("ID | 카드명 | 거래타입 | 금액 | 할부 | 월납부 | 가맹점 | 거래일시\n")
-            tableText.append("-".repeat(80)).append("\n")
-            
-            // 테이블 데이터
-            creditCardList.forEach { creditCard ->
-                tableText.append("${creditCard.id} | ")
-                tableText.append("${creditCard.cardName} | ")
-                tableText.append("${creditCard.transactionType} | ")
-                tableText.append("${formatter.format(creditCard.amount)}원 | ")
-                tableText.append("${creditCard.installment} | ")
-                tableText.append("${formatter.format(creditCard.monthlyPayment)}원 | ")
-                tableText.append("${creditCard.merchant} | ")
-                tableText.append("${creditCard.transactionDate.format(dateFormatter)}\n")
-            }
-            
-            // 통계 정보
-            tableText.append("\n📊 통계 정보\n")
-            tableText.append("-".repeat(30)).append("\n")
-            tableText.append("총 거래 건수: ${creditCardList.size}건\n")
-            
-            val totalAmount = creditCardList.sumOf { it.amount }
-            val totalMonthlyPayment = creditCardList.sumOf { it.monthlyPayment }
-            
-            tableText.append("총 사용금액: ${formatter.format(totalAmount)}원\n")
-            tableText.append("총 월납부금액: ${formatter.format(totalMonthlyPayment)}원\n")
-            
-            // 카드별 통계
-            val cardStats = creditCardList.groupBy { it.cardName }
-            tableText.append("\n💳 카드별 사용내역\n")
-            tableText.append("-".repeat(30)).append("\n")
-            
-            cardStats.forEach { (cardName, transactions) ->
-                val cardTotalAmount = transactions.sumOf { it.amount }
-                val cardMonthlyPayment = transactions.sumOf { it.monthlyPayment }
-                tableText.append("${cardName}: ${transactions.size}건, ${formatter.format(cardTotalAmount)}원, 월납부 ${formatter.format(cardMonthlyPayment)}원\n")
-            }
-        }
-        
-        tvSummary.text = tableText.toString()
-    }
     
-    /**
-     * 대시보드 업데이트 (애니메이션 포함)
-     */
-    private fun updateDashboard(monthlyBillAmount: Long, totalAmount: Long) {
-        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
-        
-        // 이달 소비금액 텍스트 업데이트 (결제금액 총액 사용)
-        val spendingText = "이달 소비금액 ${formatter.format(totalAmount)}원 (전월 0원)"
-        animateTextChange(tvMonthlySpending, spendingText)
-        
-        // 진행률 계산 (예: 월 예산 500,000원 기준)
-        val monthlyBudget = 500000L // 월 예산 설정
-        val progressPercent = if (monthlyBudget > 0) {
-            ((totalAmount.toFloat() / monthlyBudget) * 100).toInt().coerceIn(0, 100)
-        } else 0
-        
-        // 진행률 바 애니메이션 (색상 포함)
-        animateProgressBarWithColor(progressSpending, progressPercent)
-        
-        // 진행률 텍스트 애니메이션
-        val progressText = "${progressPercent}%"
-        animateTextChange(tvProgressPercent, progressText)
-        
-        // 색상 변경 애니메이션
-        animateColorChange(tvMonthlySpending, progressPercent)
-    }
     
-    /**
-     * 소득금액 대시보드 업데이트 (애니메이션 포함)
-     */
-    private fun updateIncomeDashboard(currentMonthIncome: Long, lastMonthIncome: Long) {
-        val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
-        
-        // 이달 소득금액 텍스트 업데이트 (애니메이션)
-        val incomeChange = currentMonthIncome - lastMonthIncome
-        val incomeText = "이달 소득금액 ${formatter.format(currentMonthIncome)}원 (+${formatter.format(incomeChange)}원)"
-        animateTextChange(tvMonthlyIncome, incomeText)
-        
-        // 전월 소득금액 텍스트 업데이트
-        val lastMonthText = "전월: ${formatter.format(lastMonthIncome)}원"
-        animateTextChange(tvIncomeChange, lastMonthText)
-        
-        // 증가율 계산 및 표시
-        val changePercent = if (lastMonthIncome > 0) {
-            ((incomeChange.toFloat() / lastMonthIncome) * 100).toInt()
-        } else 0
-        
-        val changePercentText = if (changePercent >= 0) "+${changePercent}%" else "${changePercent}%"
-        animateTextChange(tvIncomeChangePercent, changePercentText)
-        
-        // 증가율에 따른 색상 변경
-        val color = if (changePercent >= 0) {
-            android.R.color.holo_green_dark
-        } else {
-            android.R.color.holo_red_dark
-        }
-        tvIncomeChangePercent.setTextColor(resources.getColor(color, null))
-    }
     
     /**
      * 텍스트 변경 애니메이션
@@ -728,55 +776,130 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
+     * 데이터 새로고침 (DB에서 다시 조회)
+     */
+    /**
+     * 대시보드 데이터 새로고침 (외부에서 호출 가능)
+     * 품질 개선: 항상 DB에서 최신 데이터를 재조회하여 메모리 캐시 무시
+     */
+    fun refreshDashboardData() {
+        android.util.Log.d("MainActivity", "=== 대시보드 데이터 새로고침 시작 (외부 호출) ===")
+        // 메모리 캐시를 무시하고 항상 DB에서 최신 데이터 재조회
+        loadDashboardData()
+    }
+    
+    /**
      * 앱 시작 시 기존 데이터로 대시보드 초기화
+     */
+    /**
+     * 메인화면 대시보드 데이터 로드 (DB에서 항상 최신 데이터 재조회)
+     * 품질 개선: 메모리 캐시에 의존하지 않고 항상 DB에서 실시간 데이터 조회
      */
     private fun loadDashboardData() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val cardTransactionDao = database.cardTransactionDao()
+                android.util.Log.d("MainActivity", "=== 메인화면 데이터 재조회 시작 ===")
                 
-                // 현재 월의 시작과 끝 날짜 계산
+                val cardTransactionDao = database.cardTransactionDao()
+                val bankTransactionDao = database.bankTransactionDao()
+                val bankBalanceDao = database.bankBalanceDao()
+                
+                // 현재 월의 시작과 끝 날짜 계산 (9월과 10월 데이터 모두 조회)
                 val now = java.time.LocalDateTime.now()
+                val currentMonth = now.monthValue
+                
+                // 9월과 10월 데이터를 모두 조회하기 위해 범위 확장
+                val startOfRange = now.withMonth(9).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                val endOfRange = now.withMonth(10).withDayOfMonth(31).withHour(23).withMinute(59).withSecond(59)
+                
+                // 현재 월(10월) 범위
                 val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
                 val endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
                 
-                // DB에서 현재 월 데이터 조회
-                val monthlyBillAmount = cardTransactionDao.getMonthlyBillAmount(startOfMonth, endOfMonth) ?: 0L
-                val totalAmount = cardTransactionDao.getTotalCardUsageAmount(startOfMonth, endOfMonth) ?: 0L
-                
-                // 소득 데이터 조회 (입출금내역에서 입금만)
-                val bankTransactionDao = database.bankTransactionDao()
-                val currentMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfMonth, endOfMonth) ?: 0L
-                
-                // 전월 소득 데이터 조회
+                // 전월(9월) 범위
                 val lastMonth = now.minusMonths(1)
                 val startOfLastMonth = lastMonth.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
                 val endOfLastMonth = lastMonth.withDayOfMonth(lastMonth.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
-                val lastMonthIncome = bankTransactionDao.getTotalAmountByDateRange(startOfLastMonth, endOfLastMonth) ?: 0L
                 
-                // 메인 스레드에서 대시보드 업데이트
+                android.util.Log.d("MainActivity", "조회 기간: ${startOfMonth} ~ ${endOfMonth}")
+                
+                // 1. 카드 거래 데이터 조회 (항상 DB에서 최신 데이터)
+                val monthlyBillAmount = cardTransactionDao.getMonthlyBillAmount(startOfMonth, endOfMonth) ?: 0L
+                val totalCardAmount = cardTransactionDao.getTotalCardUsageAmount(startOfMonth, endOfMonth) ?: 0L
+                val cardTransactionCount = cardTransactionDao.getCardTransactionCountByDateRange(startOfMonth, endOfMonth)
+                
+                // 전월 카드 사용금액 조회
+                val lastMonthCardAmount = cardTransactionDao.getTotalCardUsageAmount(startOfLastMonth, endOfLastMonth) ?: 0L
+                val lastMonthCardCount = cardTransactionDao.getCardTransactionCountByDateRange(startOfLastMonth, endOfLastMonth)
+                
+                android.util.Log.d("MainActivity", "카드 거래 - 청구금액: $monthlyBillAmount, 총사용액: $totalCardAmount, 건수: $cardTransactionCount")
+                android.util.Log.d("MainActivity", "전월 카드 거래 - 총사용액: $lastMonthCardAmount, 건수: $lastMonthCardCount")
+                
+                // 2. 소득 데이터 조회 (BankTransactionDao 사용 - 입금만 조회)
+                val currentMonthIncome = bankTransactionDao.getTotalDepositAmount(startOfMonth, endOfMonth) ?: 0L
+                val incomeTransactionCount = bankTransactionDao.getBankTransactionCountByType("입금")
+                
+                // 디버깅: 전체 데이터 조회
+                android.util.Log.d("MainActivity", "=== 전체 은행거래 데이터 디버깅 ===")
+                
+                android.util.Log.d("MainActivity", "소득 거래 - 총액: $currentMonthIncome, 건수: $incomeTransactionCount")
+                android.util.Log.d("MainActivity", "조회 기간: ${startOfMonth} ~ ${endOfMonth}")
+                
+                // 3. 전월 소득 데이터 조회 (비교용)
+                val lastMonthIncome = bankTransactionDao.getTotalDepositAmount(startOfLastMonth, endOfLastMonth) ?: 0L
+                
+                android.util.Log.d("MainActivity", "전월 소득: $lastMonthIncome")
+                android.util.Log.d("MainActivity", "전월 조회 기간: ${startOfLastMonth} ~ ${endOfLastMonth}")
+                
+                // 디버깅: 전월 입금 내역 상세 조회 (Flow collect 제거)
+                android.util.Log.d("MainActivity", "=== 전월 입금 내역 상세 ===")
+                val lastMonthDepositsList = bankTransactionDao.getBankTransactionsByDateRangeList(startOfLastMonth, endOfLastMonth)
+                lastMonthDepositsList.filter { it.transactionType == "입금" }.forEach { deposit ->
+                    android.util.Log.d("MainActivity", "전월 입금: ${deposit.transactionDate} - ${deposit.description} - ${deposit.amount}원")
+                }
+                android.util.Log.d("MainActivity", "전월 입금 총 건수: ${lastMonthDepositsList.filter { it.transactionType == "입금" }.size}건")
+                
+                // 4. 총 은행 잔고 조회 (항상 DB에서 최신 데이터)
+                val totalBankBalance = bankBalanceDao.getTotalBankBalance() ?: 0L
+                val bankBalanceCount = bankBalanceDao.getBankBalanceCount()
+                
+                android.util.Log.d("MainActivity", "은행 잔고 - 총액: $totalBankBalance, 계좌수: $bankBalanceCount")
+                
+                // 5. 메인 스레드에서 대시보드 업데이트
                 withContext(Dispatchers.Main) {
-                    if (monthlyBillAmount > 0 || totalAmount > 0) {
-                        // 데이터가 있으면 대시보드 업데이트
-                        updateDashboard(monthlyBillAmount, totalAmount)
+                    try {
+                        // 카드 사용 대시보드 업데이트
+                        updateDashboard(monthlyBillAmount, totalCardAmount, lastMonthCardAmount)
+                        
+                        // 소득 대시보드 업데이트
                         updateIncomeDashboard(currentMonthIncome, lastMonthIncome)
                         
-                        // 요약 정보도 업데이트
+                        // 요약 정보 업데이트 (실시간 DB 데이터 기반)
                         val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
-                        val summaryText = "📊 기존 데이터 로드 완료\n\n" +
-                                "카드사용 총액: ${formatter.format(totalAmount)}원\n" +
-                                "이번달 청구금액: ${formatter.format(monthlyBillAmount)}원"
+                        val summaryText = buildString {
+                            append("📊 실시간 데이터 요약 (DB 조회)\n\n")
+                            append("💳 카드사용: ${formatter.format(totalCardAmount)}원 (${cardTransactionCount}건)\n")
+                            append("💰 이번달 청구: ${formatter.format(monthlyBillAmount)}원\n")
+                            append("💵 소득: ${formatter.format(currentMonthIncome)}원 (${incomeTransactionCount}건)\n")
+                            if (totalBankBalance > 0) {
+                                append("🏦 총 잔고: ${formatter.format(totalBankBalance)}원 (${bankBalanceCount}계좌)\n")
+                            }
+                            append("\n🔄 마지막 업데이트: ${java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MM/dd HH:mm:ss"))}")
+                        }
                         tvSummary.text = summaryText
-                    } else {
-                        // 데이터가 없으면 기본 메시지
-                        tvSummary.text = "📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건"
+                        
+                        android.util.Log.d("MainActivity", "=== 메인화면 데이터 업데이트 완료 ===")
+                        
+                    } catch (e: Exception) {
+                        android.util.Log.e("MainActivity", "UI 업데이트 중 오류: ${e.message}", e)
+                        tvSummary.text = "❌ 데이터 로드 오류: ${e.message}"
                     }
                 }
                 
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("MainActivity", "데이터 로드 중 오류: ${e.message}", e)
                 withContext(Dispatchers.Main) {
-                    tvSummary.text = "❌ 대시보드 로드 오류: ${e.message}"
+                    tvSummary.text = "❌ 데이터 로드 오류: ${e.message}"
                 }
             }
         }
@@ -800,6 +923,20 @@ class MainActivity : AppCompatActivity() {
         return amount
     }
     
+    override fun onResume() {
+        super.onResume()
+        android.util.Log.d("MainActivity", "onResume - 메인화면 재조회 시작")
+        // 메인화면이 다시 표시될 때마다 항상 DB에서 최신 데이터 재조회
+        loadDashboardData()
+    }
+    
+    override fun onStart() {
+        super.onStart()
+        android.util.Log.d("MainActivity", "onStart - 메인화면 시작")
+        // 앱이 시작될 때도 DB에서 최신 데이터 재조회
+        loadDashboardData()
+    }
+    
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
@@ -807,6 +944,133 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+    
+    /**
+     * 카드 사용 대시보드 업데이트
+     */
+    private fun updateDashboard(monthlyBillAmount: Long, totalCardAmount: Long, lastMonthCardAmount: Long) {
+        try {
+            val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+            // 청구금액과 사용금액을 구분해서 표시
+            val cardUsageText = "💳 이달 청구금액 ${formatter.format(monthlyBillAmount)}원 (사용 ${formatter.format(totalCardAmount)}원)"
+            tvMonthlySpending.text = cardUsageText
+            
+            android.util.Log.d("MainActivity", "카드 사용 대시보드 업데이트: $cardUsageText")
+            android.util.Log.d("MainActivity", "청구금액: ${formatter.format(monthlyBillAmount)}원, 사용금액: ${formatter.format(totalCardAmount)}원")
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "카드 사용 대시보드 업데이트 오류: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * 소득 대시보드 업데이트 (개선된 로깅 및 검증)
+     */
+    private fun updateIncomeDashboard(currentMonthIncome: Long, lastMonthIncome: Long) {
+        try {
+            val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+            val incomeChange = currentMonthIncome - lastMonthIncome
+            
+            // 증감액 표시 로직 수정 (음수일 때는 - 기호 표시)
+            val changeSign = if (incomeChange >= 0) "+" else ""
+            val incomeText = "이달 소득금액 ${formatter.format(currentMonthIncome)}원 ($changeSign${formatter.format(incomeChange)}원)"
+            
+            // UI 업데이트 전 로깅
+            android.util.Log.d("MainActivity", "=== 소득 대시보드 UI 업데이트 시작 ===")
+            android.util.Log.d("MainActivity", "현재월 소득: ${formatter.format(currentMonthIncome)}원")
+            android.util.Log.d("MainActivity", "전월 소득: ${formatter.format(lastMonthIncome)}원")
+            android.util.Log.d("MainActivity", "증감액: $changeSign${formatter.format(incomeChange)}원")
+            
+            // UI 요소 업데이트
+            tvMonthlyIncome.text = incomeText
+            android.util.Log.d("MainActivity", "tvMonthlyIncome 업데이트: $incomeText")
+            
+            if (lastMonthIncome > 0) {
+                val lastMonthText = "전월: ${formatter.format(lastMonthIncome)}원"
+                tvIncomeChange.text = lastMonthText
+                android.util.Log.d("MainActivity", "tvIncomeChange 업데이트: $lastMonthText")
+                
+                val changePercent = if (lastMonthIncome > 0) {
+                    ((incomeChange.toDouble() / lastMonthIncome) * 100).toInt()
+                } else 0
+                
+                val percentText = "변화율: ${changePercent}%"
+                tvProgressPercent.text = percentText
+                android.util.Log.d("MainActivity", "tvProgressPercent 업데이트: $percentText")
+                
+                android.util.Log.d("MainActivity", "소득 대시보드 업데이트 완료: 현재=${currentMonthIncome}, 전월=${lastMonthIncome}, 증감=${incomeChange}, 변화율=${changePercent}%")
+            } else {
+                tvIncomeChange.text = "전월: 0원"
+                tvProgressPercent.text = "변화율: -"
+                android.util.Log.d("MainActivity", "소득 대시보드 업데이트 완료: 현재=${currentMonthIncome}, 전월=0")
+            }
+            
+            android.util.Log.d("MainActivity", "=== 소득 대시보드 UI 업데이트 완료 ===")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "소득 대시보드 업데이트 오류: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * 테스트용 SMS 데이터 처리 함수 - 단계별 테스트
+     */
+    private fun testSmsParsing() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                android.util.Log.d("MainActivity", "=== SMS 파싱 테스트 시작 ===")
+                
+                // 단계 1: 간단한 입금 SMS 테스트
+                val simpleIncomeSms = "신한 10/11 21:54 100-***-159993 입금 2,500,000 잔액 3,700,000 급여"
+                android.util.Log.d("MainActivity", "단계 1 - 간단한 입금 SMS 테스트: $simpleIncomeSms")
+                
+                val smsDataRepository = SmsDataRepository(this@MainActivity)
+                val result1 = smsDataRepository.saveSmsData(simpleIncomeSms)
+                
+                android.util.Log.d("MainActivity", "단계 1 결과: 성공=${result1.isSuccess}, 메시지=${result1.message}")
+                android.util.Log.d("MainActivity", "단계 1 - 카드거래 ID: ${result1.cardTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 1 - 수입거래 ID: ${result1.incomeTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 1 - 은행잔고 ID: ${result1.bankBalanceIds}")
+                
+                // 단계 2: 출금 SMS 테스트
+                val withdrawalSms = "신한 10/11 21:54 100-***-159993 출금 3,500,000 잔액 1,200,000 신한카드"
+                android.util.Log.d("MainActivity", "단계 2 - 출금 SMS 테스트: $withdrawalSms")
+                
+                val result2 = smsDataRepository.saveSmsData(withdrawalSms)
+                
+                android.util.Log.d("MainActivity", "단계 2 결과: 성공=${result2.isSuccess}, 메시지=${result2.message}")
+                android.util.Log.d("MainActivity", "단계 2 - 카드거래 ID: ${result2.cardTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 2 - 수입거래 ID: ${result2.incomeTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 2 - 은행잔고 ID: ${result2.bankBalanceIds}")
+                
+                // 단계 3: 카드 거래 SMS 테스트
+                val cardSms = "신한카드(1054)승인 신*진 42,820원(일시불)10/22 14:59 주식회사 이마트 누적1,903,674"
+                android.util.Log.d("MainActivity", "단계 3 - 카드 거래 SMS 테스트: $cardSms")
+                
+                val result3 = smsDataRepository.saveSmsData(cardSms)
+                
+                android.util.Log.d("MainActivity", "단계 3 결과: 성공=${result3.isSuccess}, 메시지=${result3.message}")
+                android.util.Log.d("MainActivity", "단계 3 - 카드거래 ID: ${result3.cardTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 3 - 수입거래 ID: ${result3.incomeTransactionIds}")
+                android.util.Log.d("MainActivity", "단계 3 - 은행잔고 ID: ${result3.bankBalanceIds}")
+                
+                withContext(Dispatchers.Main) {
+                    val message = "SMS 테스트 완료:\n입금: ${result1.incomeTransactionIds.size}건\n출금: ${result2.incomeTransactionIds.size}건\n카드: ${result3.cardTransactionIds.size}건"
+                    android.widget.Toast.makeText(this@MainActivity, message, android.widget.Toast.LENGTH_LONG).show()
+                    
+                    // 데이터 새로고침
+                    loadDashboardData()
+                }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "SMS 파싱 테스트 오류: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(this@MainActivity, 
+                        "SMS 테스트 오류: ${e.message}", 
+                        android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

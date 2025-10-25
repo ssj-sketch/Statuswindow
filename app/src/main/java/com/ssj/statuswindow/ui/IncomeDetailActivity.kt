@@ -16,7 +16,10 @@ import com.ssj.statuswindow.databinding.ActivityIncomeDetailBinding
 import com.ssj.statuswindow.model.IncomeInfo
 import com.ssj.statuswindow.repo.IncomeRepository
 import com.ssj.statuswindow.repo.database.SmsDataRepository
+import com.ssj.statuswindow.database.StatusWindowDatabase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -29,6 +32,7 @@ class IncomeDetailActivity : AppCompatActivity() {
     private lateinit var incomeAdapter: IncomeAdapter
     private lateinit var incomeRepo: IncomeRepository
     private lateinit var smsDataRepository: SmsDataRepository
+    private lateinit var database: StatusWindowDatabase
     private val nf = NumberFormat.getNumberInstance(Locale.KOREA)
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -40,6 +44,7 @@ class IncomeDetailActivity : AppCompatActivity() {
         // IncomeRepository 초기화 (Context가 준비된 후)
         incomeRepo = IncomeRepository(this)
         smsDataRepository = SmsDataRepository(this)
+        database = StatusWindowDatabase.getDatabase(this)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -167,47 +172,48 @@ class IncomeDetailActivity : AppCompatActivity() {
     }
 
     private fun updateIncomeSummary(incomes: List<IncomeInfo> = emptyList()) {
-        val incomeList = if (incomes.isEmpty()) {
+        // DB에서 직접 조회
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                incomeRepo.getAllIncomes().filter { it.transactionDate != null }
+                val bankTransactionDao = database.bankTransactionDao()
+                
+                // 현재 월의 시작과 끝 날짜 계산
+                val now = java.time.LocalDateTime.now()
+                val startOfMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0)
+                val endOfMonth = now.withDayOfMonth(now.toLocalDate().lengthOfMonth()).withHour(23).withMinute(59).withSecond(59)
+                
+                // DB에서 수입 데이터 조회
+                val monthlyIncome = bankTransactionDao.getTotalAmountByDateRange(startOfMonth, endOfMonth) ?: 0L
+                val monthlyIncomeCount = bankTransactionDao.getTransactionCountByDateRange(startOfMonth, endOfMonth)
+                
+                // 전체 기간 수입 데이터 조회
+                val totalIncome = bankTransactionDao.getTotalAmount() ?: 0L
+                val totalIncomeCount = bankTransactionDao.getTotalTransactionCount()
+                
+                // 메인 스레드에서 UI 업데이트
+                withContext(Dispatchers.Main) {
+                    binding.tvMonthlyIncomeTotal.text = "${nf.format(monthlyIncome)}원"
+                    binding.tvIncomeCount.text = "${monthlyIncomeCount}건"
+                    binding.tvTotalIncome.text = "${nf.format(totalIncome)}원"
+                    binding.tvTotalIncomeCount.text = "${totalIncomeCount}건"
+                    
+                    // 급여/부업 구분 (Repository에서 DB 조회)
+                    val salaryIncome = incomeRepo.getCurrentMonthSalaryIncome()
+                    binding.tvSalaryIncome.text = "${nf.format(salaryIncome)}원"
+                    
+                    val sideJobIncome = incomeRepo.getCurrentMonthSideJobIncome()
+                    binding.tvSideJobIncome.text = "${nf.format(sideJobIncome)}원"
+                }
             } catch (e: Exception) {
-                android.util.Log.e("IncomeDetailActivity", "기존 수입 데이터 조회 오류: ${e.message}", e)
-                emptyList()
+                android.util.Log.e("IncomeDetailActivity", "DB 조회 오류: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    binding.tvMonthlyIncomeTotal.text = "오류"
+                    binding.tvIncomeCount.text = "오류"
+                    binding.tvTotalIncome.text = "오류"
+                    binding.tvTotalIncomeCount.text = "오류"
+                }
             }
-        } else {
-            incomes.filter { it.transactionDate != null }
         }
-        
-        // 이번달 수입
-        val currentDate = java.time.LocalDate.now()
-        val monthlyIncome = incomeList.filter { income ->
-            income.transactionDate != null &&
-            income.transactionDate.year == currentDate.year &&
-            income.transactionDate.monthValue == currentDate.monthValue
-        }.sumOf { it.amount }
-        
-        binding.tvMonthlyIncomeTotal.text = "${nf.format(monthlyIncome)}원"
-        
-        val monthlyIncomeCount = incomeList.count { income ->
-            income.transactionDate != null &&
-            income.transactionDate.year == currentDate.year &&
-            income.transactionDate.monthValue == currentDate.monthValue
-        }
-        binding.tvIncomeCount.text = "${monthlyIncomeCount}건"
-        
-        // 누적 수입
-        val totalIncome = incomeList.sumOf { it.amount }
-        binding.tvTotalIncome.text = "${nf.format(totalIncome)}원"
-        
-        val totalIncomeCount = incomeList.size
-        binding.tvTotalIncomeCount.text = "${totalIncomeCount}건"
-        
-        // 급여/부업 구분
-        val salaryIncome = incomeRepo.getCurrentMonthSalaryIncome()
-        binding.tvSalaryIncome.text = "${nf.format(salaryIncome)}원"
-        
-        val sideJobIncome = incomeRepo.getCurrentMonthSideJobIncome()
-        binding.tvSideJobIncome.text = "${nf.format(sideJobIncome)}원"
     }
 
     class IncomeAdapter : RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder>() {

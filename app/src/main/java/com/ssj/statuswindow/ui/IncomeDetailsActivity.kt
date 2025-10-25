@@ -87,21 +87,6 @@ class IncomeDetailsActivity : AppCompatActivity() {
                     drawerLayout.closeDrawers()
                     true
                 }
-                R.id.nav_card_table -> {
-                    // 카드 테이블 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_category_analysis -> {
-                    // 카테고리 분석 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
-                R.id.nav_monthly_report -> {
-                    // 월별 리포트 페이지로 이동
-                    drawerLayout.closeDrawers()
-                    true
-                }
                 R.id.nav_settings -> {
                     // 설정 페이지로 이동
                     drawerLayout.closeDrawers()

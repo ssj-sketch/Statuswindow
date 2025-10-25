@@ -28,39 +28,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-    <!-- 버튼들 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
-
-        <Button
-            android:id="@+id/btnTestSms"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="샘플 테스트" />
-
-        <Button
-            android:id="@+id/btnInputSms"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:text="직접 입력" />
-
-        <Button
-            android:id="@+id/btnShowCreditCardTable"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:text="카드 테이블" />
-
-    </LinearLayout>
 
     <!-- 대시보드 카드 -->
     <androidx.cardview.widget.CardView
@@ -81,7 +48,7 @@
                 android:id="@+id/tvMonthlySpending"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="이달 소비금액 0원 (전월 0원)"
+                android:text="💳 이달의 카드사용 0원 (전월 0원)"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
@@ -116,14 +83,6 @@
 
             </LinearLayout>
 
-            <!-- 상세보기 버튼 -->
-            <Button
-                android:id="@+id/btnViewDetails"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="상세보기"
-                android:textSize="14sp"
-                android:backgroundTint="@color/primary_color" />
 
         </LinearLayout>
 
@@ -181,14 +140,6 @@
 
             </LinearLayout>
 
-            <!-- 소득 상세보기 버튼 -->
-            <Button
-                android:id="@+id/btnViewIncomeDetails"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="소득 상세보기"
-                android:textSize="14sp"
-                android:backgroundTint="@color/success_color" />
 
         </LinearLayout>
 
@@ -201,9 +152,98 @@
         android:layout_height="wrap_content"
         android:text="📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건"
         android:textSize="14sp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         android:background="#F5F5F5"
         android:padding="8dp" />
+
+    <!-- 테스트 버튼들 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧪 테스트 도구"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/btnTestCardDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="카드 사용내역"
+                android:textSize="12sp"
+                android:backgroundTint="@color/primary_color" />
+
+            <Button
+                android:id="@+id/btnTestBankDetails"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="입출금내역"
+                android:textSize="12sp"
+                android:backgroundTint="@color/primary_color" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnTestSmsData"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="SMS 테스트"
+                android:textSize="12sp"
+                android:backgroundTint="@color/secondary_color" />
+
+            <Button
+                android:id="@+id/btnTestCardTable"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="카드 테이블"
+                android:textSize="12sp"
+                android:backgroundTint="@color/secondary_color" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnButtonTest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔧 버튼 자동 테스트"
+                android:textSize="14sp"
+                android:backgroundTint="@color/primary_color"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
         </LinearLayout>
 

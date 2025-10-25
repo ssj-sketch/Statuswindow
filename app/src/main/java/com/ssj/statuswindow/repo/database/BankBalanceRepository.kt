@@ -48,22 +48,30 @@ class BankBalanceRepository(private val database: StatusWindowDatabase) {
     }
     
     /**
-     * 은행 잔고 저장 (기존 데이터가 있으면 업데이트)
+     * 은행 잔고 저장 (가장 늦은 시간의 잔액만 유지)
      */
     suspend fun insertOrUpdateBankBalance(bankBalance: BankBalanceEntity): Long {
         val existing = getBankBalanceByAccount(bankBalance.bankName, bankBalance.accountNumber)
         
         return if (existing != null) {
-            // 기존 데이터 업데이트
-            val updatedBalance = bankBalance.copy(
-                id = existing.id,
-                updatedAt = LocalDateTime.now()
-            )
-            bankBalanceDao.updateBankBalance(updatedBalance)
-            existing.id
+            // 시간 비교: 새로운 잔액이 더 늦은 시간이면 업데이트
+            if (bankBalance.lastTransactionDate.isAfter(existing.lastTransactionDate)) {
+                val updatedBalance = bankBalance.copy(
+                    id = existing.id,
+                    updatedAt = LocalDateTime.now()
+                )
+                bankBalanceDao.updateBankBalance(updatedBalance)
+                android.util.Log.d("BankBalanceRepository", "은행 잔고 업데이트: ${bankBalance.bankName} ${bankBalance.accountNumber} - ${existing.balance}원 → ${bankBalance.balance}원 (${bankBalance.lastTransactionDate})")
+                existing.id
+            } else {
+                android.util.Log.d("BankBalanceRepository", "은행 잔고 유지: ${bankBalance.bankName} ${bankBalance.accountNumber} - 기존 ${existing.balance}원이 더 늦음 (${existing.lastTransactionDate})")
+                existing.id
+            }
         } else {
             // 새 데이터 삽입
-            bankBalanceDao.insertBankBalance(bankBalance)
+            val id = bankBalanceDao.insertBankBalance(bankBalance)
+            android.util.Log.d("BankBalanceRepository", "은행 잔고 신규 저장: ${bankBalance.bankName} ${bankBalance.accountNumber} - ${bankBalance.balance}원 (${bankBalance.lastTransactionDate})")
+            id
         }
     }
     

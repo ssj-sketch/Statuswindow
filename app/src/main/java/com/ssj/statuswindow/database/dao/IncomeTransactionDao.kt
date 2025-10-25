@@ -52,4 +52,8 @@ interface IncomeTransactionDao {
 
     @Query("SELECT COUNT(*) FROM income_transactions")
     suspend fun getIncomeTransactionCount(): Int
+    
+    // 중복 체크 메서드 추가
+    @Query("SELECT COUNT(*) FROM income_transactions WHERE accountNumber = :accountNumber AND amount = :amount AND transactionDate = :transactionDate")
+    suspend fun checkDuplicateIncomeTransaction(accountNumber: String, amount: Long, transactionDate: LocalDateTime): Int
 }

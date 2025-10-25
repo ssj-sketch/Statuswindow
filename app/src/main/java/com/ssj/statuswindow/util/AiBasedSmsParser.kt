@@ -1,6 +1,7 @@
 package com.ssj.statuswindow.util
 
 import com.ssj.statuswindow.database.entity.BankBalanceEntity
+import com.ssj.statuswindow.database.entity.BankTransactionEntity
 import com.ssj.statuswindow.database.entity.CardTransactionEntity
 import com.ssj.statuswindow.database.entity.IncomeTransactionEntity
 import java.time.LocalDateTime
@@ -95,11 +96,9 @@ object AiBasedSmsParser {
             return SmsType.CARD_TRANSACTION
         }
         
-        // 수입 내역 패턴 인식 (입금이 있고 급여/용돈/부업/투자수익/보너스 등이 있는 경우)
-        if (text.contains("입금") && (text.contains("급여") || text.contains("용돈") || 
-            text.contains("부업") || text.contains("투자수익") || text.contains("보너스") || 
-            text.contains("신년용돈") || text.contains("잔액"))) {
-            android.util.Log.d("AiBasedSmsParser", "수입 내역 패턴 매칭됨")
+        // 수입 내역 패턴 인식 (입금이 있는 경우)
+        if (text.contains("입금")) {
+            android.util.Log.d("AiBasedSmsParser", "입금 패턴 매칭됨 - 수입 내역으로 분류")
             return SmsType.INCOME_TRANSACTION
         }
         
@@ -139,8 +138,9 @@ object AiBasedSmsParser {
             // 사용자명 추출
             val user = extractUserName(smsText)
             
-            // 금액 추출
-            val amount = extractAmount(smsText)
+            // 금액 추출 (취소 거래는 음수로 처리)
+            val rawAmount = extractAmount(smsText)
+            val amount = if (transactionType == "취소") -rawAmount else rawAmount
             
             // 할부 정보 추출
             val installment = extractInstallment(smsText)
@@ -174,7 +174,7 @@ object AiBasedSmsParser {
     }
     
     /**
-     * AI 추론으로 수입 내역 파싱
+     * AI 추론으로 수입 내역 파싱 (IncomeTransactionEntity와 BankTransactionEntity 모두 생성)
      */
     private fun parseIncomeTransactionWithAi(smsText: String): IncomeTransactionEntity? {
         try {
@@ -199,7 +199,8 @@ object AiBasedSmsParser {
             // 날짜/시간 추출
             val transactionDate = extractDateTime(smsText)
             
-            return IncomeTransactionEntity(
+            // IncomeTransactionEntity 생성
+            val incomeEntity = IncomeTransactionEntity(
                 bankName = bankName,
                 accountNumber = accountNumber,
                 transactionType = transactionType,
@@ -208,6 +209,27 @@ object AiBasedSmsParser {
                 balance = balance,
                 transactionDate = transactionDate
             )
+            
+            // BankTransactionEntity도 함께 생성하여 저장
+            val bankEntity = BankTransactionEntity(
+                bankName = bankName,
+                accountNumber = accountNumber,
+                accountType = "입출금",
+                transactionType = transactionType,
+                amount = amount,
+                balance = balance,
+                description = description,
+                transactionDate = transactionDate,
+                memo = "",
+                originalText = smsText
+            )
+            
+            // BankTransactionEntity를 데이터베이스에 저장
+            // 이 부분은 SmsDataRepository에서 처리하도록 수정 필요
+            
+            android.util.Log.d("AiBasedSmsParser", "BankTransactionEntity 생성됨: $bankEntity")
+            
+            return incomeEntity
             
         } catch (e: Exception) {
             android.util.Log.e("AiBasedSmsParser", "수입 내역 파싱 오류: ${e.message}", e)
@@ -310,7 +332,21 @@ object AiBasedSmsParser {
             }
         }
         
-        // 패턴 2: "원"이 없는 경우 - 숫자만 추출
+        // 패턴 2: "입금" 또는 "출금" 키워드 뒤의 금액 추출 (개선된 로직)
+        if (text.contains("입금") || text.contains("출금")) {
+            val transactionPattern = "(입금|출금)\\s+([0-9,]+)".toRegex()
+            val transactionMatch = transactionPattern.find(text)
+            if (transactionMatch != null) {
+                val amountStr = transactionMatch.groupValues[2].replace(",", "")
+                val amount = amountStr.toLongOrNull()
+                if (amount != null && amount > 0) {
+                    android.util.Log.d("AiBasedSmsParser", "금액 추출 성공 (거래 패턴): $amount")
+                    return amount
+                }
+            }
+        }
+        
+        // 패턴 3: "원"이 없는 경우 - 숫자만 추출
         val patternWithoutWon = "([0-9,]+)".toRegex()
         val matchesWithoutWon = patternWithoutWon.findAll(text)
         
@@ -429,13 +465,19 @@ object AiBasedSmsParser {
         if (text.contains("부업")) return "부업"
         if (text.contains("투자수익")) return "투자수익"
         if (text.contains("신년용돈")) return "신년용돈"
+        if (text.contains("환급금")) return "환급금"
+        if (text.contains("부업수입")) return "부업수입"
         
         // 출금 관련
-        if (text.contains("출금")) return "출금"
-        if (text.contains("atm")) return "ATM출금"
-        if (text.contains("이체")) return "이체"
-        if (text.contains("현금인출")) return "현금인출"
-        if (text.contains("연말정산")) return "연말정산"
+        if (text.contains("출금")) {
+            // 출금 유형별 분류
+            if (text.contains("생활비")) return "생활비"
+            if (text.contains("카드결제")) return "카드결제"
+            if (text.contains("현금인출")) return "현금인출"
+            if (text.contains("대출상환")) return "대출상환"
+            if (text.contains("신한카드")) return "신한카드"
+            return "출금"
+        }
         
         // 기본값 (입금이 있지만 구체적인 설명이 없는 경우)
         if (text.contains("입금")) return "입금"

@@ -6,36 +6,50 @@
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@android:drawable/ic_menu_manage"
-            android:title="대시보드" />
+            android:title="🏠 대시보드" />
 
         <item
             android:id="@+id/nav_card_details"
             android:icon="@android:drawable/ic_menu_agenda"
-            android:title="카드 사용내역" />
+            android:title="💳 카드 사용내역" />
+
+        <item
+            android:id="@+id/nav_card_usage_table"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="📊 카드사용내역 테이블" />
 
         <item
             android:id="@+id/nav_bank_transaction"
             android:icon="@android:drawable/ic_menu_send"
-            android:title="입출금내역" />
+            android:title="🏦 입출금내역" />
 
         <item
-            android:id="@+id/nav_card_table"
-            android:icon="@android:drawable/ic_menu_view"
-            android:title="카드 테이블" />
-
-        <item
-            android:id="@+id/nav_category_analysis"
-            android:icon="@android:drawable/ic_menu_sort_by_size"
-            android:title="카테고리 분석" />
-
-        <item
-            android:id="@+id/nav_monthly_report"
-            android:icon="@android:drawable/ic_menu_recent_history"
-            android:title="월별 리포트" />
+            android:id="@+id/nav_bank_transaction_table"
+            android:icon="@android:drawable/ic_menu_send"
+            android:title="📈 입출금내역 테이블" />
 
     </group>
 
-    <item android:title="설정">
+    <item android:title="🔧 개발자 도구">
+        <menu>
+            <item
+                android:id="@+id/nav_sms_test"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="📱 SMS 테스트" />
+            
+            <item
+                android:id="@+id/nav_button_test"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="🔘 버튼 자동 테스트" />
+            
+            <item
+                android:id="@+id/nav_realtime_log"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="📝 실시간 로그" />
+        </menu>
+    </item>
+
+    <item android:title="⚙️ 설정">
         <menu>
             <item
                 android:id="@+id/nav_settings"

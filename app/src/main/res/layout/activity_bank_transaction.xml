@@ -21,7 +21,125 @@
             app:title="입출금내역"
             app:titleTextColor="@android:color/white" />
 
-        <!-- 요약 정보 -->
+        <!-- 10월 입출금내역 타이틀 -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏦 10월 입출금내역"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_color"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center" />
+
+        <!-- 요약 정보 카드 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📊 입출금내역 요약"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary_color"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="총 거래 건수"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:id="@+id/tvTotalCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0건"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="총 입금금액"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:id="@+id/tvTotalDeposit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0원"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="총 출금금액"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:id="@+id/tvTotalWithdrawal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0원"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- 기존 요약 정보 (숨김 처리) -->
         <TextView
             android:id="@+id/tvSummary"
             android:layout_width="match_parent"
@@ -30,7 +148,8 @@
             android:textSize="14sp"
             android:layout_margin="16dp"
             android:background="#F5F5F5"
-            android:padding="12dp" />
+            android:padding="12dp"
+            android:visibility="gone" />
 
         <!-- 전체삭제 버튼 (테스트용) -->
         <Button
@@ -44,14 +163,56 @@
             android:backgroundTint="@color/error_color"
             android:textSize="14sp" />
 
+        <!-- 상세 리스트 타이틀 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📋 상세 거래 내역"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_color"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center" />
+
+        <!-- 구글 플레이 스타일 정렬 드롭다운 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnSortDropdown"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="인기순"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:background="@drawable/dropdown_button_background"
+                android:drawableEnd="@drawable/ic_arrow_drop_down_24dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:minWidth="120dp" />
+
+        </LinearLayout>
+
         <!-- 거래 내역 목록 -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_margin="16dp"
-            android:background="#FFFFFF" />
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#FFFFFF"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
 
     </LinearLayout>
 
