@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.navigation.NavigationView
 import com.ssj.statuswindow.databinding.ActivitySettingsBinding
 import com.ssj.statuswindow.util.SettingsPreferences
 import com.ssj.statuswindow.util.NotificationHistoryPermissionManager
@@ -13,6 +15,8 @@ import com.ssj.statuswindow.util.LocationPermissionManager
 import com.ssj.statuswindow.util.LocationPermissionStatus
 import com.ssj.statuswindow.service.DeviceCountryDetectionService
 import com.ssj.statuswindow.util.SmsParser
+import com.ssj.statuswindow.util.NavigationManager
+import com.ssj.statuswindow.ui.components.AppToolbar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.util.Log
@@ -22,6 +26,9 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var settingsPreferences: SettingsPreferences
     private lateinit var countryDetectionService: DeviceCountryDetectionService
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var appToolbar: AppToolbar
+    private lateinit var navigationView: NavigationView
     
     companion object {
         private const val TAG = "SettingsActivity"
@@ -35,9 +42,18 @@ class SettingsActivity : AppCompatActivity() {
         settingsPreferences = SettingsPreferences.getInstance(this)
         countryDetectionService = DeviceCountryDetectionService(this)
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "설정"
+        // 네비게이션 설정
+        drawerLayout = binding.drawerLayout
+        appToolbar = binding.appToolbar
+        navigationView = binding.navigationView
+        
+        // AppToolbar 설정
+        appToolbar.setupWithDrawer(this, drawerLayout)
+        appToolbar.setTitle("설정")
+
+        // 공통 네비게이션 매니저 설정
+        NavigationManager.setupNavigation(this, navigationView, drawerLayout, SettingsActivity::class.java)
+        NavigationManager.setActiveMenuItem(navigationView, SettingsActivity::class.java)
 
         // SMS 파서 초기화
         SmsParser.initialize(this)

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="@dimen/padding_lg"
+    android:background="@color/surface">
+
+    <!-- 아이콘 (선택사항) -->
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="@dimen/icon_md"
+        android:layout_height="@dimen/icon_md"
+        android:layout_marginEnd="@dimen/margin_sm"
+        android:src="@drawable/ic_launcher_foreground"
+        android:contentDescription="아이콘"
+        android:visibility="gone" />
+
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="섹션 제목"
+        android:textSize="@dimen/text_lg"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold" />
+
+    <!-- 액션 버튼 (선택사항) -->
+    <Button
+        android:id="@+id/btnAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="액션"
+        android:visibility="gone" />
+
+</LinearLayout>

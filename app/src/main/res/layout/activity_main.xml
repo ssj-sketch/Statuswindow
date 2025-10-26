@@ -11,241 +11,146 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 툴바 -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- AppToolbar 컴포넌트 -->
+        <com.ssj.statuswindow.ui.components.AppToolbar
+            android:id="@+id/appToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_color"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:title="💰 StatusWindow"
-            app:titleTextColor="@android:color/white" />
+            android:layout_height="wrap_content" />
 
-        <!-- 메인 콘텐츠 -->
-        <LinearLayout
+        <!-- 스크롤 가능한 메인 콘텐츠 -->
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:fillViewport="true">
 
-
-    <!-- 대시보드 카드 -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- 이달 소비금액 -->
-            <TextView
-                android:id="@+id/tvMonthlySpending"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="💳 이달의 카드사용 0원 (전월 0원)"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <!-- 소비 진행률 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                        <ProgressBar
-                            android:id="@+id/progressSpending"
-                            style="?android:attr/progressBarStyleHorizontal"
+                <!-- 소비 카드 -->
+                <com.ssj.statuswindow.ui.components.SummaryCard
+                    android:id="@+id/spendingCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 소득 카드 -->
+                <com.ssj.statuswindow.ui.components.SummaryCard
+                    android:id="@+id/incomeCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 소비 진척도 카드 -->
+                <com.ssj.statuswindow.ui.components.ProgressBarCard
+                    android:id="@+id/spendingProgressCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 테스트 섹션 헤더 -->
+                <com.ssj.statuswindow.ui.components.SectionHeader
+                    android:id="@+id/testSectionHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- 테스트 버튼들 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <Button
+                            android:id="@+id/btnTestCardDetails"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:max="100"
-                            android:progress="0"
-                            android:progressTint="@color/success_color"
-                            android:progressBackgroundTint="@color/progress_track_color" />
+                            android:layout_marginEnd="4dp"
+                            android:text="카드 사용내역" />
 
+                        <Button
+                            android:id="@+id/btnTestBankDetails"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="입출금내역" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <Button
+                            android:id="@+id/btnTestSmsData"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="SMS 테스트" />
+
+                        <Button
+                            android:id="@+id/btnTestCardTable"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="카드 테이블" />
+
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnButtonTest"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🔧 버튼 자동 테스트" />
+
+                    <Button
+                        android:id="@+id/btnLogViewer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="📝 로그 확인"
+                        android:layout_marginTop="8dp" />
+
+                    <Button
+                        android:id="@+id/btnIntegrationTest"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🧪 컴포넌트 검증"
+                        android:layout_marginTop="8dp"
+                        android:background="#FF9800"
+                        android:textColor="@android:color/white" />
+
+                </LinearLayout>
+
+                <!-- 요약 정보 -->
                 <TextView
-                    android:id="@+id/tvProgressPercent"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvSummary"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="0%"
+                    android:text="📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건"
                     android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="16dp"
+                    android:background="#F5F5F5"
+                    android:padding="12dp" />
 
             </LinearLayout>
 
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <!-- 소득금액 대시보드 카드 -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- 이달 소득금액 -->
-            <TextView
-                android:id="@+id/tvMonthlyIncome"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="이달 소득금액 0원 (+0원)"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <!-- 전월 대비 증가율 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:id="@+id/tvIncomeChange"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="전월: 0원"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/darker_gray" />
-
-                <TextView
-                    android:id="@+id/tvIncomeChangePercent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="+0%"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/holo_green_dark" />
-
-            </LinearLayout>
-
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <!-- 요약 정보 (간단한 형태) -->
-    <TextView
-        android:id="@+id/tvSummary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="📊 파싱 결과 요약\n\n총 거래: 0건\n카드 거래: 0건\n은행 거래: 0건"
-        android:textSize="14sp"
-        android:layout_marginBottom="16dp"
-        android:background="#F5F5F5"
-        android:padding="8dp" />
-
-    <!-- 테스트 버튼들 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="16dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🧪 테스트 도구"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btnTestCardDetails"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="카드 사용내역"
-                android:textSize="12sp"
-                android:backgroundTint="@color/primary_color" />
-
-            <Button
-                android:id="@+id/btnTestBankDetails"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="입출금내역"
-                android:textSize="12sp"
-                android:backgroundTint="@color/primary_color" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnTestSmsData"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="SMS 테스트"
-                android:textSize="12sp"
-                android:backgroundTint="@color/secondary_color" />
-
-            <Button
-                android:id="@+id/btnTestCardTable"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="카드 테이블"
-                android:textSize="12sp"
-                android:backgroundTint="@color/secondary_color" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-
-            <Button
-                android:id="@+id/btnButtonTest"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="🔧 버튼 자동 테스트"
-                android:textSize="14sp"
-                android:backgroundTint="@color/primary_color"
-                android:textColor="@android:color/white" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-        </LinearLayout>
+        </ScrollView>
 
     </LinearLayout>
 

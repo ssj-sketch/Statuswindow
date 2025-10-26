@@ -7,6 +7,8 @@
     <!-- 네비게이션 드로어 -->
     <string name="nav_drawer_open">네비게이션 열기</string>
     <string name="nav_drawer_close">네비게이션 닫기</string>
+    <string name="navigation_drawer_open">네비게이션 열기</string>
+    <string name="navigation_drawer_close">네비게이션 닫기</string>
     <string name="nav_income_detail">수입 상세</string>
     <string name="nav_sms_data_test">SMS 데이터 테스트</string>
     

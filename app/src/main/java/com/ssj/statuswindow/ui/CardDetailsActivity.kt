@@ -20,6 +20,9 @@ import com.ssj.statuswindow.ui.adapter.CardTransactionAdapter
 import com.ssj.statuswindow.model.CardTransaction
 import com.ssj.statuswindow.util.ModificationNotificationManager
 import com.ssj.statuswindow.util.NavigationManager
+import com.ssj.statuswindow.ui.components.AppToolbar
+import com.ssj.statuswindow.ui.components.SummaryCard
+import com.ssj.statuswindow.ui.components.SectionHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,15 +47,14 @@ enum class SortOrder {
 class CardDetailsActivity : AppCompatActivity() {
     
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var toolbar: Toolbar
+    private lateinit var appToolbar: AppToolbar
+    private lateinit var summaryCard: SummaryCard
+    private lateinit var sectionHeader: SectionHeader
     private lateinit var navigationView: NavigationView
     private lateinit var recyclerView: RecyclerView
     private lateinit var tvSummary: TextView
     private lateinit var btnDeleteAll: Button
     private lateinit var tvTitle: TextView
-    private lateinit var tvTotalCount: TextView
-    private lateinit var tvTotalAmount: TextView
-    private lateinit var tvTotalBilling: TextView
     private lateinit var mainLayout: LinearLayout
     
     // 정렬 버튼들
@@ -95,26 +97,40 @@ class CardDetailsActivity : AppCompatActivity() {
     
     private fun setupViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
-        toolbar = findViewById(R.id.toolbar)
+        appToolbar = findViewById(R.id.appToolbar)
+        summaryCard = findViewById(R.id.summaryCard)
+        sectionHeader = findViewById(R.id.sectionHeader)
         navigationView = findViewById(R.id.navigationView)
         recyclerView = findViewById(R.id.recyclerView)
         tvSummary = findViewById(R.id.tvSummary)
         btnDeleteAll = findViewById(R.id.btnDeleteAll)
         tvTitle = findViewById(R.id.tvTitle)
-        tvTotalCount = findViewById(R.id.tvTotalCount)
-        tvTotalAmount = findViewById(R.id.tvTotalAmount)
-        tvTotalBilling = findViewById(R.id.tvTotalBilling)
         mainLayout = findViewById(R.id.mainLayout)
         
         // 정렬 버튼들 초기화
         btnSortDropdown = findViewById(R.id.btnSortDropdown)
+        
+        // 새로운 컴포넌트 설정
+        setupNewComponents()
+    }
+    
+    private fun setupNewComponents() {
+        // AppToolbar 설정
+        appToolbar.setupWithDrawer(this, drawerLayout)
+        appToolbar.setTitle("카드 사용내역")
+        
+        // SummaryCard 설정
+        summaryCard.setTitle("📊 사용내역 요약")
+        summaryCard.setPrimaryValue("0건")
+        summaryCard.setSubtitle("총 거래 건수")
+        
+        // SectionHeader 설정
+        sectionHeader.setTitle("📋 상세 거래 내역")
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
-        supportActionBar?.title = "카드 사용내역"
+        // AppToolbar는 이미 setupNewComponents에서 설정됨
+        // 기존 toolbar 관련 코드는 제거
     }
     
     private fun setupNavigation() {
@@ -693,10 +709,10 @@ class CardDetailsActivity : AppCompatActivity() {
                     cardTransactions.clear()
                     adapter.submitList(emptyList())
                     
-                    // 카드 형태의 요약 정보 업데이트
-                    tvTotalCount.text = "0건"
-                    tvTotalAmount.text = "0원"
-                    tvTotalBilling.text = "0원"
+                    // SummaryCard 업데이트
+                    summaryCard.setTitle("📊 사용내역 요약")
+                    summaryCard.setPrimaryValue("0건")
+                    summaryCard.setSubtitle("총 거래 건수")
                     
                     android.widget.Toast.makeText(this@CardDetailsActivity, "모든 데이터가 삭제되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
                 }
@@ -773,10 +789,10 @@ class CardDetailsActivity : AppCompatActivity() {
                 
                 // 메인 스레드에서 UI 업데이트
                 withContext(Dispatchers.Main) {
-                    // 카드 형태의 요약 정보 업데이트
-                    tvTotalCount.text = "${totalCount}건"
-                    tvTotalAmount.text = "${formatter.format(totalAmount)}원"
-                    tvTotalBilling.text = "${formatter.format(totalBillingAmount)}원"
+                    // SummaryCard 업데이트
+                    summaryCard.setTitle("📊 사용내역 요약")
+                    summaryCard.setPrimaryValue("${totalCount}건")
+                    summaryCard.setSubtitle("총 거래 건수")
                     
                     // 기존 요약 정보도 업데이트 (디버깅용)
         val summary = StringBuilder()

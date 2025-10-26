@@ -15,6 +15,7 @@ import com.ssj.statuswindow.database.entity.CardTransactionEntity
 import com.ssj.statuswindow.model.CardTransaction
 import com.ssj.statuswindow.util.ExcelExportManager
 import com.ssj.statuswindow.util.NavigationManager
+import com.ssj.statuswindow.ui.components.AppToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,7 +41,7 @@ import android.provider.Settings
 class CardTableActivity : AppCompatActivity() {
     
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var toolbar: Toolbar
+    private lateinit var appToolbar: AppToolbar
     private lateinit var navigationView: NavigationView
     
     // 조회기간 선택
@@ -97,20 +98,22 @@ class CardTableActivity : AppCompatActivity() {
     
     private fun setupViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
-        toolbar = findViewById(R.id.toolbar)
+        appToolbar = findViewById(R.id.appToolbar)
         navigationView = findViewById(R.id.navigationView)
         spinnerPeriod = findViewById(R.id.spinnerPeriod)
         tvTotalCount = findViewById(R.id.tvTotalCount)
         btnExportExcel = findViewById(R.id.btnExportExcel)
         horizontalScrollView = findViewById(R.id.horizontalScrollView)
         tableLayout = findViewById(R.id.tableLayout)
+        
+        // AppToolbar 설정
+        appToolbar.setupWithDrawer(this, drawerLayout)
+        appToolbar.setTitle("카드 테이블")
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
-        supportActionBar?.title = "카드사용내역 테이블"
+        // AppToolbar는 이미 setupViews에서 설정됨
+        // 기존 toolbar 관련 코드는 제거
     }
     
     private fun setupNavigation() {

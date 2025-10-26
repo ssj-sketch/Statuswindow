@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvMetricChip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="+0%"
+    android:textSize="@dimen/text_sm"
+    android:textColor="@color/text_primary_dark"
+    android:background="@drawable/chip_background_positive"
+    android:padding="@dimen/padding_xs"
+    android:gravity="center"
+    android:minWidth="@dimen/touch_target_min"
+    android:minHeight="@dimen/touch_target_min" />
+

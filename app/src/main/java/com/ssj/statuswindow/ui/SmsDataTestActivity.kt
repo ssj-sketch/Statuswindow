@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
@@ -15,6 +16,7 @@ import com.ssj.statuswindow.databinding.ActivitySmsDataTestBinding
 import com.ssj.statuswindow.repo.database.SmsDataRepository
 import com.ssj.statuswindow.util.NavigationManager
 import com.ssj.statuswindow.util.TestLogger
+import com.ssj.statuswindow.ui.components.AppToolbar
 import kotlinx.coroutines.launch
 
 /**
@@ -27,7 +29,7 @@ class SmsDataTestActivity : AppCompatActivity() {
     
     // 네비게이션 드로어 관련
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var toolbar: Toolbar
+    private lateinit var appToolbar: AppToolbar
     private lateinit var navigationView: NavigationView
 
     // 테스트용 SMS 데이터 (smspasertest.txt에서 가져온 데이터)
@@ -81,14 +83,17 @@ class SmsDataTestActivity : AppCompatActivity() {
     
     private fun setupViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
-        toolbar = findViewById(R.id.toolbar)
+        appToolbar = findViewById(R.id.appToolbar)
         navigationView = findViewById(R.id.navigationView)
+        
+        // AppToolbar 설정
+        appToolbar.setupWithDrawer(this, drawerLayout)
+        appToolbar.setTitle("SMS 테스트")
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
+        // AppToolbar는 이미 setupViews에서 설정됨
+        // 기존 toolbar 관련 코드는 제거
     }
     
     private fun setupNavigation() {

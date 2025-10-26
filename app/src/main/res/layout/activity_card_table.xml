@@ -12,14 +12,11 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 툴바 -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- AppToolbar 컴포넌트 -->
+        <com.ssj.statuswindow.ui.components.AppToolbar
+            android:id="@+id/appToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_color"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            android:layout_height="wrap_content" />
 
         <!-- 조회기간 및 요약 정보 -->
         <LinearLayout

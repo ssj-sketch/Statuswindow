@@ -525,6 +525,200 @@ object SmsParser {
     }
     
     /**
+     * 대출 관련 SMS 파싱
+     * 대출금리 재산정, 이자 납부 등 대출 관련 정보 파싱
+     */
+    fun parseLoanSms(smsText: String): com.ssj.statuswindow.database.entity.LoanEntity? {
+        try {
+            Log.d(TAG, "대출 SMS 파싱 시도: $smsText")
+            
+            val lines = smsText.trim().split("\n")
+            
+            // 1. 금리 재산정 SMS 감지
+            if (smsText.contains("금리.*재산정") || smsText.contains("재산정")) {
+                return parseLoanRateReset(lines, smsText)
+            }
+            
+            // 2. 이자 납부 SMS 감지
+            if (smsText.contains("납부예정이자") || smsText.contains("이자납부")) {
+                return parseLoanInterestPayment(lines, smsText)
+            }
+            
+            // 3. 대출 정보 일반 SMS
+            if (smsText.contains("대출") || smsText.contains("대출잔액") || smsText.contains("대출계좌")) {
+                return parseLoanInfo(lines, smsText)
+            }
+            
+            Log.d(TAG, "대출 관련 SMS가 아님")
+            return null
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "대출 SMS 파싱 오류", e)
+            return null
+        }
+    }
+    
+    /**
+     * 대출 금리 재산정 SMS 파싱
+     */
+    private fun parseLoanRateReset(lines: List<String>, smsText: String): com.ssj.statuswindow.database.entity.LoanEntity? {
+        try {
+            var bankName = ""
+            var loanName = ""
+            var accountNumber = ""
+            var currentRate = 0.0
+            var resetRate = 0.0
+            var remainingPrincipal = 0L
+            var resetDate: LocalDateTime? = null
+            
+            for (line in lines) {
+                // 은행명 추출
+                if (bankName.isEmpty()) {
+                    val bankMatch = Regex("(KB|신한|하나|우리|카카오|토스|국민|NH|농협|기업|SC|수협|부산|대구|광주|전북|경남|새마을|신협|저축|씨티|HSBC)").find(line)
+                    bankMatch?.let { bankName = it.value }
+                }
+                
+                // 대출명 추출
+                if (loanName.isEmpty()) {
+                    val loanMatch = Regex("([가-힣\\s]+(?:신용|주택담보|전세자금|마이너스|국민행복))대출").find(line)
+                    loanMatch?.let { loanName = it.value.trim() }
+                }
+                
+                // 계좌번호 추출
+                if (accountNumber.isEmpty()) {
+                    val accountMatch = Regex("(\\d{10,}\\*{2,})").find(line)
+                    accountMatch?.let { accountNumber = it.value }
+                }
+                
+                // 대출잔액 추출
+                if (remainingPrincipal == 0L) {
+                    val balanceMatch = Regex("대출잔액[^:]*[:]?\\s*(\\d{1,3}(?:,\\d{3})*)").find(line)
+                    balanceMatch?.let {
+                        remainingPrincipal = it.groupValues[1].replace(",", "").toLongOrNull() ?: 0L
+                    }
+                }
+                
+                // 현재 금리 추출
+                val currentRateMatch = Regex("현재금리[:]?\\s*(\\d+\\.?\\d*)%").find(line)
+                currentRateMatch?.let {
+                    currentRate = it.groupValues[1].toDoubleOrNull() ?: 0.0
+                }
+                
+                // 재산정 금리 추출
+                val resetRateMatch = Regex("재산정금리[:]?\\s*(\\d+\\.?\\d*)%").find(line)
+                resetRateMatch?.let {
+                    resetRate = it.groupValues[1].toDoubleOrNull() ?: 0.0
+                }
+                
+                // 재산정일 추출
+                val dateMatch = Regex("(\\d{4})\\.\\s*(\\d{1,2})\\.\\s*(\\d{1,2})").find(line)
+                dateMatch?.let {
+                    val year = it.groupValues[1].toInt()
+                    val month = it.groupValues[2].toInt()
+                    val day = it.groupValues[3].toInt()
+                    resetDate = LocalDateTime.of(year, month, day, 0, 0)
+                }
+            }
+            
+            if (bankName.isNotEmpty() && loanName.isNotEmpty() && accountNumber.isNotEmpty()) {
+                // 금리 재산정은 기본 정보이므로 paymentMonth는 빈 문자열
+                // 같은 대출의 기본 정보는 업데이트만 됨
+                
+                return com.ssj.statuswindow.database.entity.LoanEntity(
+                    bankName = bankName + "은행",
+                    loanName = loanName,
+                    loanType = if (loanName.contains("신용")) "신용대출" else if (loanName.contains("주택담보")) "주택담보대출" else "기타대출",
+                    accountNumber = accountNumber,
+                    paymentMonth = "", // 빈 문자열: 기본 정보
+                    remainingPrincipal = remainingPrincipal,
+                    interestRate = resetRate,
+                    nextPaymentDate = resetDate,
+                    loanAmount = if (remainingPrincipal > 0) remainingPrincipal else 0, // 대출 원금 설정
+                    originalText = smsText,
+                    status = "진행중"
+                )
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "금리 재산정 파싱 오류", e)
+        }
+        
+        return null
+    }
+    
+    /**
+     * 이자 납부 SMS 파싱
+     */
+    private fun parseLoanInterestPayment(lines: List<String>, smsText: String): com.ssj.statuswindow.database.entity.LoanEntity? {
+        try {
+            var bankName = ""
+            var accountNumber = ""
+            var interestAmount = 0L
+            var paymentDate: LocalDateTime? = null
+            
+            for (line in lines) {
+                // 은행명 추출
+                if (bankName.isEmpty()) {
+                    val bankMatch = Regex("(KB|신한|하나|우리|카카오|토스|국민|NH|농협)").find(line)
+                    bankMatch?.let { bankName = it.value }
+                }
+                
+                // 계좌번호 추출
+                if (accountNumber.isEmpty()) {
+                    val accountMatch = Regex("(\\d+)\\*{3,}").find(line)
+                    accountMatch?.let { accountNumber = it.value }
+                }
+                
+                // 이자금액 추출
+                val interestMatch = Regex("￦\\s*(\\d{1,3}(?:,\\d{3})*)").find(line)
+                interestMatch?.let {
+                    interestAmount = it.groupValues[1].replace(",", "").toLongOrNull() ?: 0L
+                }
+                
+                // 납부예정일 추출
+                val dateMatch = Regex("(\\d+)\\s*월\\s*(\\d+)\\s*일").find(line)
+                dateMatch?.let {
+                    val month = it.groupValues[1].toInt()
+                    val day = it.groupValues[2].toInt()
+                    val now = LocalDateTime.now()
+                    paymentDate = LocalDateTime.of(now.year, month, day, 0, 0)
+                }
+            }
+            
+            if (bankName.isNotEmpty() && accountNumber.isNotEmpty() && interestAmount > 0) {
+                // 현재 월을 YYYY-MM 형식으로 설정
+                val now = LocalDateTime.now()
+                val paymentMonth = "${now.year}-${now.monthValue.toString().padStart(2, '0')}"
+                
+                return com.ssj.statuswindow.database.entity.LoanEntity(
+                    bankName = bankName + "은행",
+                    loanName = "대출",
+                    loanType = "신용대출",
+                    accountNumber = accountNumber,
+                    paymentMonth = paymentMonth,
+                    monthlyInterestPayment = interestAmount,
+                    nextPaymentDate = paymentDate,
+                    originalText = smsText,
+                    status = "진행중"
+                )
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "이자 납부 파싱 오류", e)
+        }
+        
+        return null
+    }
+    
+    /**
+     * 일반 대출 정보 SMS 파싱
+     */
+    private fun parseLoanInfo(lines: List<String>, smsText: String): com.ssj.statuswindow.database.entity.LoanEntity? {
+        // 기본 구현 (필요 시 확장)
+        return null
+    }
+    
+    /**
      * SMS 파서 정리
      */
     fun cleanup() {

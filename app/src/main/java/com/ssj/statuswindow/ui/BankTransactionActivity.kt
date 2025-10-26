@@ -19,6 +19,8 @@ import com.ssj.statuswindow.R
 import com.ssj.statuswindow.database.StatusWindowDatabase
 import com.ssj.statuswindow.database.entity.BankTransactionEntity
 import com.ssj.statuswindow.util.NavigationManager
+import com.ssj.statuswindow.ui.adapter.BankTransactionAdapter
+import com.ssj.statuswindow.ui.components.AppToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,7 +35,7 @@ import java.util.*
 class BankTransactionActivity : AppCompatActivity() {
     
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var toolbar: Toolbar
+    private lateinit var appToolbar: AppToolbar
     private lateinit var navigationView: NavigationView
     private lateinit var recyclerView: RecyclerView
     private lateinit var tvTotalCount: TextView
@@ -44,6 +46,7 @@ class BankTransactionActivity : AppCompatActivity() {
     
     private lateinit var database: StatusWindowDatabase
     private val bankTransactions = mutableListOf<BankTransactionEntity>()
+    private lateinit var bankTransactionAdapter: BankTransactionAdapter
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +56,13 @@ class BankTransactionActivity : AppCompatActivity() {
             // 데이터베이스 초기화
             database = StatusWindowDatabase.getDatabase(this)
             
+            // 어댑터 초기화
+            bankTransactionAdapter = BankTransactionAdapter()
+            
             setupViews()
             setupToolbar()
             setupNavigation()
+            setupRecyclerView()
             loadBankTransactions()
             
         } catch (e: Exception) {
@@ -72,7 +79,7 @@ class BankTransactionActivity : AppCompatActivity() {
     
     private fun setupViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
-        toolbar = findViewById(R.id.toolbar)
+        appToolbar = findViewById(R.id.appToolbar)
         navigationView = findViewById(R.id.navigationView)
         recyclerView = findViewById(R.id.recyclerView)
         tvTotalCount = findViewById(R.id.tvTotalCount)
@@ -80,12 +87,15 @@ class BankTransactionActivity : AppCompatActivity() {
         tvTotalWithdrawal = findViewById(R.id.tvTotalWithdrawal)
         btnSortDropdown = findViewById(R.id.btnSortDropdown)
         btnDeleteAll = findViewById(R.id.btnDeleteAll)
+        
+        // AppToolbar 설정
+        appToolbar.setupWithDrawer(this, drawerLayout)
+        appToolbar.setTitle("입출금내역")
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "🏦 입출금내역"
+        // AppToolbar는 이미 setupViews에서 설정됨
+        // 기존 toolbar 관련 코드는 제거
     }
     
     private fun setupNavigation() {
@@ -106,7 +116,7 @@ class BankTransactionActivity : AppCompatActivity() {
                     
                     withContext(Dispatchers.Main) {
                         updateSummary()
-                        setupRecyclerView()
+                        bankTransactionAdapter.updateTransactions(transactions)
                     }
                 }
             } catch (e: Exception) {
@@ -128,8 +138,7 @@ class BankTransactionActivity : AppCompatActivity() {
     
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(this)
-        // TODO: BankTransactionAdapter 구현 필요
-        // recyclerView.adapter = BankTransactionAdapter(bankTransactions)
+        recyclerView.adapter = bankTransactionAdapter
     }
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -3,109 +3,94 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="12dp">
 
-        <!-- 상단: 날짜, 은행명, 금액 -->
+        <!-- 첫 번째 행: 날짜, 거래구분, 금액 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="12/25 14:30"
+                android:text="10/22 14:59"
                 android:textSize="14sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/tvType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="입금"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/deposit_color"
+                android:background="@drawable/transaction_type_background"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp" />
 
             <TextView
                 android:id="@+id/tvAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="+2,500,000원"
+                android:text="1,000,000원"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/holo_green_dark" />
+                android:textColor="@color/deposit_color"
+                android:layout_marginStart="8dp" />
 
         </LinearLayout>
 
-        <!-- 거래내용 -->
-        <TextView
-            android:id="@+id/tvDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="급여"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <!-- 하단: 은행명, 계좌번호, 잔액 -->
+        <!-- 두 번째 행: 거래처, 잔액 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
 
             <TextView
-                android:id="@+id/tvBankName"
+                android:id="@+id/tvDescription"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="신한"
-                android:textSize="12sp"
-                android:textColor="@android:color/holo_blue_dark"
-                android:background="#E3F2FD"
-                android:padding="4dp"
-                android:gravity="center" />
+                android:text="신한은행 급여"
+                android:textSize="13sp"
+                android:textColor="@android:color/black" />
 
             <TextView
-                android:id="@+id/tvAccountNumber"
-                android:layout_width="0dp"
+                android:id="@+id/tvBalance"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="100-***-159993"
+                android:text="잔액: 5,000,000원"
                 android:textSize="12sp"
                 android:textColor="@android:color/darker_gray" />
 
         </LinearLayout>
 
-        <!-- 잔액 정보 -->
+        <!-- 세 번째 행: 메모 (있는 경우에만 표시) -->
         <TextView
-            android:id="@+id/tvBalance"
+            android:id="@+id/tvMemo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="잔액: 3,700,000원"
+            android:text="메모 내용"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"
-            android:background="#F5F5F5"
-            android:padding="6dp" />
-
-        <!-- 삭제 버튼 -->
-        <Button
-            android:id="@+id/btnDelete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:text="삭제"
-            android:textSize="12sp"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@color/error_color"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp" />
+            android:visibility="gone" />
 
     </LinearLayout>
 

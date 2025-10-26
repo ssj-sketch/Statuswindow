@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/margin_sm"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_medium"
+    app:cardBackgroundColor="@color/surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_lg">
+
+        <!-- 헤더 영역 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_sm">
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="@dimen/icon_md"
+                android:layout_height="@dimen/icon_md"
+                android:layout_marginEnd="@dimen/margin_sm"
+                android:src="@drawable/ic_launcher_foreground"
+                android:contentDescription="아이콘" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="제목"
+                android:textSize="@dimen/text_lg"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDelta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+0%"
+                android:textSize="@dimen/text_sm"
+                android:textColor="@color/positive"
+                android:background="@drawable/chip_background_positive"
+                android:padding="@dimen/padding_xs"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- 메인 값 영역 -->
+        <TextView
+            android:id="@+id/tvPrimaryValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0원"
+            android:textSize="@dimen/text_xxxl"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="@dimen/margin_xs" />
+
+        <!-- 서브 정보 영역 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="부제목"
+                android:textSize="@dimen/text_sm"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvTrend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↗"
+                android:textSize="@dimen/text_md"
+                android:textColor="@color/positive"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

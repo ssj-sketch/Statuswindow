@@ -12,15 +12,11 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 툴바 -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- AppToolbar 컴포넌트 -->
+        <com.ssj.statuswindow.ui.components.AppToolbar
+            android:id="@+id/appToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary_color"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:title="카드 사용내역"
-            app:titleTextColor="@android:color/white" />
+            android:layout_height="wrap_content" />
 
         <!-- 10월 카드사용내역 타이틀 -->
         <TextView
@@ -37,108 +33,12 @@
             android:gravity="center" />
 
         <!-- 요약 정보 카드 -->
-        <androidx.cardview.widget.CardView
+        <com.ssj.statuswindow.ui.components.SummaryCard
+            android:id="@+id/summaryCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@android:color/white">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="📊 사용내역 요약"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary_color"
-                    android:layout_marginBottom="12dp"
-                    android:gravity="center" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="총 거래 건수"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tvTotalCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0건"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/primary_color" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="총 사용금액"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tvTotalAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0원"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/primary_color" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="총 청구금액"
-                        android:textSize="14sp"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/tvTotalBilling"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0원"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/primary_color" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
+            android:layout_marginBottom="16dp" />
 
         <!-- 기존 요약 정보 (숨김 처리) -->
         <TextView
@@ -164,18 +64,14 @@
             android:backgroundTint="@color/error_color"
             android:textSize="14sp" />
 
-        <!-- 상세 리스트 타이틀 -->
-        <TextView
+        <!-- 상세 내역 섹션 헤더 -->
+        <com.ssj.statuswindow.ui.components.SectionHeader
+            android:id="@+id/sectionHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📋 상세 거래 내역"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary_color"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:gravity="center" />
+            android:layout_marginBottom="8dp" />
 
         <!-- 구글 플레이 스타일 정렬 드롭다운 -->
         <LinearLayout

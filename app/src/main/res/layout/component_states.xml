@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="@dimen/padding_xxl">
+
+    <!-- 아이콘 -->
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="@dimen/icon_xl"
+        android:layout_height="@dimen/icon_xl"
+        android:layout_marginBottom="@dimen/margin_lg"
+        android:src="@drawable/ic_launcher_foreground"
+        android:contentDescription="상태 아이콘" />
+
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="상태 제목"
+        android:textSize="@dimen/text_xl"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_sm"
+        android:gravity="center" />
+
+    <!-- 설명 -->
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="상태 설명"
+        android:textSize="@dimen/text_md"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="@dimen/margin_lg"
+        android:gravity="center"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+    <!-- 재시도 버튼 -->
+    <Button
+        android:id="@+id/btnRetry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다시 시도"
+        android:visibility="gone" />
+
+</LinearLayout>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== DESIGN TOKENS - SPACING ===== -->
+    
+    <!-- Base Spacing Unit: 4dp -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">20dp</dimen>
+    <dimen name="spacing_xxl">24dp</dimen>
+    <dimen name="spacing_xxxl">32dp</dimen>
+    
+    <!-- Padding -->
+    <dimen name="padding_xs">4dp</dimen>
+    <dimen name="padding_sm">8dp</dimen>
+    <dimen name="padding_md">12dp</dimen>
+    <dimen name="padding_lg">16dp</dimen>
+    <dimen name="padding_xl">20dp</dimen>
+    <dimen name="padding_xxl">24dp</dimen>
+    
+    <!-- Margin -->
+    <dimen name="margin_xs">4dp</dimen>
+    <dimen name="margin_sm">8dp</dimen>
+    <dimen name="margin_md">12dp</dimen>
+    <dimen name="margin_lg">16dp</dimen>
+    <dimen name="margin_xl">20dp</dimen>
+    <dimen name="margin_xxl">24dp</dimen>
+    
+    <!-- ===== DESIGN TOKENS - SIZES ===== -->
+    
+    <!-- Corner Radius -->
+    <dimen name="radius_sm">8dp</dimen>
+    <dimen name="radius_md">12dp</dimen>
+    <dimen name="radius_lg">16dp</dimen>
+    <dimen name="radius_xl">20dp</dimen>
+    <dimen name="radius_xxl">24dp</dimen>
+    
+    <!-- Elevation -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_low">2dp</dimen>
+    <dimen name="elevation_medium">4dp</dimen>
+    <dimen name="elevation_high">8dp</dimen>
+    
+    <!-- Touch Target -->
+    <dimen name="touch_target_min">48dp</dimen>
+    
+    <!-- Button Height -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_height_sm">40dp</dimen>
+    <dimen name="button_height_lg">56dp</dimen>
+    
+    <!-- Icon Size -->
+    <dimen name="icon_sm">16dp</dimen>
+    <dimen name="icon_md">24dp</dimen>
+    <dimen name="icon_lg">32dp</dimen>
+    <dimen name="icon_xl">48dp</dimen>
+    
+    <!-- ===== DESIGN TOKENS - TYPOGRAPHY ===== -->
+    
+    <!-- Font Size -->
+    <dimen name="text_xs">12sp</dimen>
+    <dimen name="text_sm">14sp</dimen>
+    <dimen name="text_md">16sp</dimen>
+    <dimen name="text_lg">18sp</dimen>
+    <dimen name="text_xl">20sp</dimen>
+    <dimen name="text_xxl">24sp</dimen>
+    <dimen name="text_xxxl">32sp</dimen>
+    
+    <!-- Line Height -->
+    <dimen name="line_height_tight">1.2</dimen>
+    <dimen name="line_height_normal">1.4</dimen>
+    <dimen name="line_height_relaxed">1.6</dimen>
+    
+    <!-- Letter Spacing -->
+    <dimen name="letter_spacing_tight">-0.02</dimen>
+    <dimen name="letter_spacing_normal">0</dimen>
+    <dimen name="letter_spacing_wide">0.02</dimen>
+</resources>
+

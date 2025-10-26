@@ -1,40 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 은퇴 자산 카드 배경색 -->
-    <color name="retirement_asset_background">#FF6B35</color>
+    <!-- ===== DESIGN TOKENS ===== -->
     
-    <!-- 기본 색상들 -->
+    <!-- Primary Colors -->
+    <color name="primary">#5A67F7</color>
+    <color name="primary_dark">#4C56D9</color>
+    <color name="primary_light">#8E9BFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#F7931E</color>
+    <color name="secondary_dark">#E6851A</color>
+    <color name="secondary_light">#FFA726</color>
+    
+    <!-- Semantic Colors -->
+    <color name="positive">#2ECC71</color>
+    <color name="negative">#FF6B6B</color>
+    <color name="warning">#FF9800</color>
+    <color name="info">#2196F3</color>
+    
+    <!-- Background Colors -->
+    <color name="background">#FAFAFA</color>
+    <color name="background_dark">#0A0F2B</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_dark">#101737</color>
+    <color name="surface_variant">#F5F5F5</color>
+    <color name="surface_variant_dark">#1A1F3F</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="text_hint_dark">#808080</color>
+    
+    <!-- Border Colors -->
+    <color name="border">#E0E0E0</color>
+    <color name="border_dark">#2A2F4F</color>
+    
+    <!-- Legacy Colors (기존 호환성 유지) -->
+    <color name="retirement_asset_background">#FF6B35</color>
     <color name="primary_color">#FF6B35</color>
     <color name="secondary_color">#F7931E</color>
     <color name="success_color">#4CAF50</color>
     <color name="warning_color">#FF9800</color>
     <color name="error_color">#F44336</color>
-    
-    <!-- 텍스트 색상 -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_hint">#BDBDBD</color>
     <color name="primary_text_color">#212121</color>
     <color name="secondary_text_color">#757575</color>
-    
-    <!-- 배경 색상 -->
     <color name="background_light">#FAFAFA</color>
     <color name="background_card">#FFFFFF</color>
     <color name="light_gray">#F5F5F5</color>
-    
-    <!-- 앱별 색상들 -->
     <color name="buff_color">#FF9800</color>
     <color name="wealth_color">#4CAF50</color>
     <color name="income_color">#2196F3</color>
-    
-    <!-- 프로그레스 바 색상 -->
     <color name="progress_track_color">#E0E0E0</color>
-    
-    <!-- 런처 아이콘 배경 -->
     <color name="ic_launcher_background">#FF6B35</color>
-    
-    <!-- 추가 색상들 -->
     <color name="debuff_color">#F44336</color>
     <color name="profit_color">#4CAF50</color>
     <color name="loss_color">#F44336</color>
+    <color name="deposit_color">#4CAF50</color>
+    <color name="withdrawal_color">#F44336</color>
 </resources>

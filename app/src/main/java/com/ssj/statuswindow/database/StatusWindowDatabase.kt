@@ -8,6 +8,7 @@ import android.content.Context
 import com.ssj.statuswindow.database.converter.DateTimeConverter
 import com.ssj.statuswindow.database.dao.*
 import com.ssj.statuswindow.database.entity.*
+import com.ssj.statuswindow.database.dao.LogDao
 
 /**
  * StatusWindow 앱의 Room 데이터베이스
@@ -22,9 +23,12 @@ import com.ssj.statuswindow.database.entity.*
             BankTransactionEntity::class,
             IncomeTransactionEntity::class,
             BankBalanceEntity::class,
-            SmsProcessingLogEntity::class
+            SmsProcessingLogEntity::class,
+            LogEntity::class,
+            LoanEntity::class,
+            SavingsEntity::class
         ],
-    version = 6,
+    version = 10,
     exportSchema = false,
     autoMigrations = []
 )
@@ -37,6 +41,9 @@ abstract class StatusWindowDatabase : RoomDatabase() {
     abstract fun incomeTransactionDao(): IncomeTransactionDao
     abstract fun bankBalanceDao(): BankBalanceDao
     abstract fun smsProcessingLogDao(): SmsProcessingLogDao
+    abstract fun logDao(): LogDao
+    abstract fun loanDao(): LoanDao
+    abstract fun savingsDao(): SavingsDao
     
     companion object {
         @Volatile

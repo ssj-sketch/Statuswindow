@@ -1,0 +1,33 @@
+📱 StatusWindow 앱
+├── 🏠 대시보드
+│   └── MainActivity.kt (메인 런처 액티비티) ✅ 햄버거 버튼
+│
+├── 💳 카드 사용내역  
+│   └── CardDetailsActivity.kt ✅ 햄버거 버튼
+│
+├── 📊 카드사용내역 테이블
+│   └── CardTableActivity.kt  > 헤더 색상 동일하게 수정(햄버거 버튼)
+│
+├── 🏦 입출금내역
+│   └── BankTransactionActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+│
+└── 📈 입출금내역 테이블
+    └── BankTransactionTableActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+
+
+🔧 개발자 도구
+├── 📱 SMS 테스트
+│   └── SmsDataTestActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+│
+├── 🔘 버튼 자동 테스트
+│   └── ButtonTestActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+│
+└── 📝 실시간 로그
+    └── RealTimeLogActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+
+⚙️ 설정
+├── 설정
+│   └── SettingsActivity.kt > 헤더 색상 동일하게 수정(햄버거 버튼)
+│
+└── 앱 정보
+    └── (Toast 메시지로 표시)
